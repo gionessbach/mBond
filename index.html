@@ -419,6 +419,9 @@ textarea#fbText:focus{outline:none;border-color:var(--heart)}
 .hint.speaking,h2.speaking{background:var(--heart-soft);border-radius:12px;box-shadow:0 0 0 6px var(--heart-soft)}
 .scale button svg{transition:transform .2s,filter .2s}
 
+.list.rel-list{overflow:visible;flex:none}
+.rel-cat{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;opacity:.7;margin:14px 4px 6px}
+.rel-cat:first-of-type{margin-top:6px}
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{border-radius:16px;padding:8px 4px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:14px;line-height:1.1}
@@ -550,19 +553,19 @@ const SETS={
   ["kuss","😘","Gute-Nacht-Ritual","wenn es ein Gute-Nacht-Ritual gibt"]],
  teen:[
   ["umarmung","","Umarmung","wenn es eine Umarmung gibt","hug","Ich bin zu alt für Umarmungen","Okay. Vielleicht eine."],
-  ["fahrdienst","","Fahrdienst","wenn es einen Fahrdienst gibt","car","Eltern-Taxi","Fährt auch um 23 Uhr. Ohne Vortrag."],
-  ["mitspielen","","Mitspielen","wenn jemand das Lieblingsspiel mitspielt","game","Eltern spielen mit","…und sind gar nicht mal so schlecht"],
+  ["fahrdienst","","Fahrdienst","wenn es einen Fahrdienst gibt","car","Taxi-Service","Fährt auch um 23 Uhr. Ohne Vortrag."],
+  ["mitspielen","","Mitspielen","wenn jemand das Lieblingsspiel mitspielt","game","Erwachsene spielen mit","…und sind gar nicht mal so schlecht"],
   ["vertrauen","","Vertrauen","wenn es Vertrauen statt Kontrolle gibt","key","Keine 20 Kontrollfragen","Nur: Viel Spaß!"],
   ["tuer","","Privatsphäre","wenn die geschlossene Zimmertür respektiert wird","door","Tür ist zu","Und niemand klopft fünfmal"],
-  ["nachricht","","Nette Nachricht","wenn einfach so eine nette Nachricht kommt","phone","Nachricht von den Eltern","Kein „Wo bist du?“ Nur ein Herz."],
+  ["nachricht","","Nette Nachricht","wenn einfach so eine nette Nachricht kommt","phone","Nachricht kommt rein","Kein „Wo bist du?“ Nur ein Herz."],
   ["streit","","Nach dem Streit","wenn nach einem Streit jemand den ersten Schritt macht","branch","Nach dem Streit","macht jemand anderes den ersten Schritt"],
-  ["muehe","","Mühe sehen","wenn die Mühe gelobt wird, nicht nur die Note","summit","Note: meh","Eltern: Ich hab gesehen, wie du gelernt hast"],
-  ["serie","","Serie zusammen","wenn ihr zusammen eine Serie schaut","tv","„Nur noch eine Folge“","sagen diesmal die Eltern"],
-  ["meinung","","Mitreden","wenn die eigene Meinung wirklich zählt","voice","Eltern fragen nach meiner Meinung","und hören sie sich wirklich an"],
+  ["muehe","","Mühe sehen","wenn die Mühe gelobt wird, nicht nur die Note","summit","Note: meh","Trotzdem: „Ich hab gesehen, wie du gelernt hast“"],
+  ["serie","","Serie zusammen","wenn ihr zusammen eine Serie schaut","tv","„Nur noch eine Folge“","sagen diesmal die Erwachsenen"],
+  ["meinung","","Mitreden","wenn die eigene Meinung wirklich zählt","voice","Erwachsene fragen nach meiner Meinung","und hören sie sich wirklich an"],
   ["zuhoeren","","Zuhören ohne Tipps","wenn zugehört wird, ohne gleich Ratschläge zu geben","ear","Ich erzähle was","und kriege keinen einzigen Tipp"],
   ["ruhe","","In Ruhe lassen","wenn man in Ruhe gelassen wird, wenn es nötig ist","moon","Brauche meine Ruhe","und bekomme sie. Einfach so."],
   ["essen","","Lieblingsessen","wenn es das Lieblingsessen gibt","pizza","Schlechter Tag","Zuhause gibt's Lieblingsessen"],
-  ["musik","","Musik teilen","wenn sich jemand für die Lieblingsmusik interessiert","music","Eltern fragen nach meiner Playlist","und hören wirklich rein"]],
+  ["musik","","Musik teilen","wenn sich jemand für die Lieblingsmusik interessiert","music","Jemand fragt nach meiner Playlist","und hört wirklich rein"]],
  jung:[
   ["anruf","","Einfach so melden","wenn sich jemand einfach so meldet","call"],
   ["stolz","","„Ich bin stolz“","wenn jemand sagt: Ich bin stolz auf dich","medal"],
@@ -600,21 +603,21 @@ const SWAP={
   ["ueberraschung","🎁","Selbstgemachte Überraschung","wenn es eine selbstgemachte Überraschung gibt"],
   ["geschwister","🤝","Lieb zu Geschwistern","wenn Geschwister lieb zueinander sind"],
   ["zimmer","🧸","Zimmer aufgeräumt","wenn das Zimmer ohne Erinnern aufgeräumt ist"],
-  ["vorlesen","📖","Selbst vorlesen","wenn das Kind etwas vorliest"],
+  ["vorlesen","📖","Selbst vorlesen","wenn selbst etwas vorgelesen wird"],
   ["tisch","🍽️","Tisch decken","wenn beim Tischdecken geholfen wird"],
   ["lachen","😂","Zusammen lachen","wenn ihr zusammen lacht"]],
  teen:[
-  ["erzaehlen","","Vom Tag erzählen","wenn einfach so vom Tag erzählt wird","chat","„Wie war's in der Schule?“","Kind erzählt freiwillig mehr als „gut“"],
-  ["danke","","Danke","wenn Danke gesagt wird","heart","Ein einfaches Danke","Eltern: *muss kurz weinen*"],
-  ["melden","","Kurz melden","wenn eine Nachricht kommt, dass alles okay ist","okmsg","„Bin gut angekommen“","Drei Wörter, die Eltern retten"],
+  ["erzaehlen","","Vom Tag erzählen","wenn einfach so vom Tag erzählt wird","chat","„Wie war's in der Schule?“","Antwort: freiwillig mehr als „gut“"],
+  ["danke","","Danke","wenn Danke gesagt wird","heart","Ein einfaches Danke","Ich: *muss kurz weinen*"],
+  ["melden","","Kurz melden","wenn eine Nachricht kommt, dass alles okay ist","okmsg","„Bin gut angekommen“","Drei Wörter, die Nerven retten"],
   ["hilfe","","Ungefragt helfen","wenn ohne Aufforderung geholfen wird","cutlery","Spülmaschine ausgeräumt","Ohne dass jemand gefragt hat"],
-  ["zeit","","Freiwillige Zeit","wenn freiwillig Zeit zusammen verbracht wird","sun","Kind will was mit mir machen","Freiwillig??"],
+  ["zeit","","Freiwillige Zeit","wenn freiwillig Zeit zusammen verbracht wird","sun","Teen will was mit mir machen","Freiwillig??"],
   ["umarmung","","Umarmung","wenn es eine Umarmung gibt","hug","Umarmung vom Teenager","Seltener als WLAN im Zug"],
   ["entschuldigung","","Entschuldigung","wenn nach einem Streit eine Entschuldigung kommt","sorry","Nach dem Streit","kommt ein leises „Sorry“"],
-  ["musik","","Musik teilen","wenn die Lieblingsmusik geteilt wird","music","Kind zeigt mir seine Musik","Ich: tue so, als wäre ich cool"],
-  ["rat","","Um Rat fragen","wenn um Rat gefragt wird","compass","Kind fragt mich um Rat","Ich: fühle mich wie ein weiser Zauberer"]],
+  ["musik","","Musik teilen","wenn die Lieblingsmusik geteilt wird","music","Teen zeigt mir seine Musik","Ich: tue so, als wäre ich cool"],
+  ["rat","","Um Rat fragen","wenn um Rat gefragt wird","compass","Teen fragt mich um Rat","Ich: fühle mich wie ein weiser Zauberer"]],
  jung:[
-  ["anruf","","Einfach so melden","wenn sich das Kind einfach so meldet","call"],
+  ["anruf","","Einfach so melden","wenn sich jemand einfach so meldet","call"],
   ["besuch","","Besuch","wenn ein Besuch angekündigt wird","house"],
   ["rat","","Um Rat fragen","wenn um Rat gefragt wird","compass"],
   ["danke","","Danke","wenn Danke gesagt wird","heart"],
@@ -684,13 +687,13 @@ SWAP.kind.push(
   ["witz","😂","Witz erzählen","wenn ein Witz erzählt wird"],
   ["show","🎤","Vorführung","wenn es eine kleine Vorführung gibt"]);
 SETS.teen.push(
-  ["memes","","Memes schicken","wenn ein gutes Meme geschickt wird","phone","Eltern schicken ein Meme","…und es ist sogar lustig"],
-  ["peinlich","","Nicht peinlich sein","wenn vor Freunden nichts Peinliches passiert","voice","Eltern treffen meine Freunde","und sagen nichts Peinliches"],
+  ["memes","","Memes schicken","wenn ein gutes Meme geschickt wird","phone","Erwachsene schicken ein Meme","…und es ist sogar lustig"],
+  ["peinlich","","Nicht peinlich sein","wenn vor Freunden nichts Peinliches passiert","voice","Erwachsene treffen meine Freunde","und sagen nichts Peinliches"],
   ["snack","","Lieblingssnack","wenn der Lieblingssnack einfach so da ist","pizza","Schrank aufgemacht","Lieblingssnack ist einfach da"]);
 SWAP.teen.push(
-  ["technik","","Technik erklären","wenn das Handy erklärt wird, ohne Augenrollen","phone","Kind erklärt mir das Handy","ohne ein einziges Augenrollen"],
-  ["lachen","","Zum Lachen bringen","wenn über einen Witz gelacht wird","sun","Kind lacht über meinen Witz","Echt jetzt? Kein Mitleid?"],
-  ["mitkommen","","Mitkommen","wenn freiwillig zum Familienausflug mitgekommen wird","car","Familienausflug","Teen kommt mit. Ohne Verhandlung."]);
+  ["technik","","Technik erklären","wenn das Handy erklärt wird, ohne Augenrollen","phone","Teen erklärt mir das Handy","ohne ein einziges Augenrollen"],
+  ["lachen","","Zum Lachen bringen","wenn über einen Witz gelacht wird","sun","Teen lacht über meinen Witz","Echt jetzt? Kein Mitleid?"],
+  ["mitkommen","","Mitkommen","wenn freiwillig zum Ausflug mitgekommen wird","car","Ausflug mit uns","Teen kommt mit. Ohne Verhandlung."]);
 SETS.jung.push(
   ["geschichten","","Alte Geschichten","wenn ihr über alte Geschichten lacht","camera"],
   ["insider","","Insider-Witz","wenn ihr einen Insider-Witz habt","chat"],
@@ -793,41 +796,41 @@ const EN={
 "kind:o:ueberraschung":["Homemade surprise","when there's a homemade surprise"],
 "kind:o:geschwister":["Kind to siblings","when siblings are kind to each other"],
 "kind:o:zimmer":["Tidy room","when the room is tidied without reminders"],
-"kind:o:vorlesen":["Reading aloud","when the child reads something aloud"],
+"kind:o:vorlesen":["Reading aloud","when someone reads aloud by themselves"],
 "kind:o:tisch":["Setting the table","when someone helps set the table"],
 "kind:o:lachen":["Laughing together","when you laugh together"],
 "kind:o:streich":["A little prank","when there's a harmless prank"],
 "kind:o:witz":["Telling a joke","when someone tells a joke"],
 "kind:o:show":["A little show","when there's a little performance"],
 "teen:y:umarmung":["Hug","when there's a hug","I'm too old for hugs","Okay. Maybe one."],
-"teen:y:fahrdienst":["Ride service","when there's a ride","Parent taxi","Runs at 11 pm too. No lecture."],
-"teen:y:mitspielen":["Playing along","when someone plays your favourite game","Parents join the game","…and they're actually not that bad"],
+"teen:y:fahrdienst":["Ride service","when there's a ride","Taxi service","Runs at 11 pm too. No lecture."],
+"teen:y:mitspielen":["Playing along","when someone plays your favourite game","Grown-ups join the game","…and they're actually not that bad"],
 "teen:y:vertrauen":["Trust","when there's trust instead of control","No 20 control questions","Just: Have fun!"],
 "teen:y:tuer":["Privacy","when the closed bedroom door is respected","Door is shut","and nobody knocks five times"],
-"teen:y:nachricht":["Nice message","when a nice message arrives just because","Message from parents","No “Where are you?” Just a heart."],
+"teen:y:nachricht":["Nice message","when a nice message arrives just because","A message comes in","No “Where are you?” Just a heart."],
 "teen:y:streit":["After a fight","when someone takes the first step after a fight","After the fight","someone else makes the first move"],
-"teen:y:muehe":["Seeing the effort","when the effort is praised, not just the grade","Grade: meh","Parents: I saw how hard you studied"],
-"teen:y:serie":["Series together","when you watch a series together","“Just one more episode”","says the parent this time"],
-"teen:y:meinung":["Having a say","when your opinion really counts","Parents ask for my opinion","and actually listen to it"],
+"teen:y:muehe":["Seeing the effort","when the effort is praised, not just the grade","Grade: meh","Still: “I saw how hard you studied”"],
+"teen:y:serie":["Series together","when you watch a series together","“Just one more episode”","says the grown-up this time"],
+"teen:y:meinung":["Having a say","when your opinion really counts","Grown-ups ask for my opinion","and actually listen to it"],
 "teen:y:zuhoeren":["Listening, no advice","when someone listens without giving advice right away","I tell them something","and get zero tips"],
 "teen:y:ruhe":["Space","when you're left alone when you need it","I need some space","and I get it. Just like that."],
 "teen:y:essen":["Favourite food","when there's your favourite food","Bad day","Favourite dinner at home"],
-"teen:y:musik":["Sharing music","when someone is curious about your music","Parents ask for my playlist","and actually listen"],
-"teen:y:memes":["Sending memes","when a good meme arrives","Parents send a meme","…and it's actually funny"],
-"teen:y:peinlich":["Not embarrassing","when nothing embarrassing happens in front of friends","Parents meet my friends","and say nothing embarrassing"],
+"teen:y:musik":["Sharing music","when someone is curious about your music","Someone asks for my playlist","and actually listen"],
+"teen:y:memes":["Sending memes","when a good meme arrives","Grown-ups send a meme","…and it's actually funny"],
+"teen:y:peinlich":["Not embarrassing","when nothing embarrassing happens in front of friends","Grown-ups meet my friends","and say nothing embarrassing"],
 "teen:y:snack":["Favourite snack","when your favourite snack is just there","Opened the cupboard","favourite snack is just there"],
-"teen:o:erzaehlen":["Talking about the day","when there's news about the day, unprompted","“How was school?”","Kid says more than “fine”"],
-"teen:o:danke":["Thank you","when someone says thank you","A simple thank you","Parents: *needs a moment*"],
-"teen:o:melden":["Checking in","when a message says everything's okay","“Arrived safely”","Two words that save parents"],
+"teen:o:erzaehlen":["Talking about the day","when there's news about the day, unprompted","“How was school?”","Answer: more than “fine”"],
+"teen:o:danke":["Thank you","when someone says thank you","A simple thank you","Me: *needs a moment*"],
+"teen:o:melden":["Checking in","when a message says everything's okay","“Arrived safely”","Two words that save nerves"],
 "teen:o:hilfe":["Helping unasked","when someone helps without being asked","Dishwasher emptied","Without anyone asking"],
-"teen:o:zeit":["Time by choice","when time together is spent by choice","Kid wants to do something with me","Voluntarily??"],
+"teen:o:zeit":["Time by choice","when time together is spent by choice","Teen wants to do something with me","Voluntarily??"],
 "teen:o:umarmung":["Hug","when there's a hug","Hug from a teenager","Rarer than Wi-Fi on a train"],
 "teen:o:entschuldigung":["Apology","when an apology comes after a fight","After the fight","comes a quiet “sorry”"],
-"teen:o:musik":["Sharing music","when your favourite music is shared","Kid shows me their music","Me: pretending to be cool"],
-"teen:o:rat":["Asking for advice","when someone asks for advice","Kid asks me for advice","Me: feeling like a wise wizard"],
-"teen:o:technik":["Tech support","when the phone gets explained without eye-rolling","Kid explains my phone","without a single eye-roll"],
-"teen:o:lachen":["Making laugh","when a joke gets a laugh","Kid laughs at my joke","Really? Not a pity laugh?"],
-"teen:o:mitkommen":["Coming along","when someone joins the family trip by choice","Family trip","Teen comes along. No negotiations."],
+"teen:o:musik":["Sharing music","when your favourite music is shared","Teen shows me their music","Me: pretending to be cool"],
+"teen:o:rat":["Asking for advice","when someone asks for advice","Teen asks me for advice","Me: feeling like a wise wizard"],
+"teen:o:technik":["Tech support","when the phone gets explained without eye-rolling","Teen explains my phone","without a single eye-roll"],
+"teen:o:lachen":["Making laugh","when a joke gets a laugh","Teen laughs at my joke","Really? Not a pity laugh?"],
+"teen:o:mitkommen":["Coming along","when someone joins the trip by choice","Trip with us","Teen comes along. No negotiations."],
 "jung:y:anruf":["Calling just because","when someone gets in touch just because"],
 "jung:y:stolz":["“I'm proud”","when someone says: I'm proud of you"],
 "jung:y:rat":["Advice, no pressure","when there's advice but no pressure"],
@@ -844,7 +847,7 @@ const EN={
 "jung:y:geschichten":["Old stories","when you laugh about old stories"],
 "jung:y:insider":["Inside joke","when you share an inside joke"],
 "jung:y:spiel":["Game night","when you have a game night"],
-"jung:o:anruf":["Calling just because","when your child gets in touch just because"],
+"jung:o:anruf":["Calling just because","when someone gets in touch just because"],
 "jung:o:besuch":["A visit","when a visit is announced"],
 "jung:o:rat":["Asking for advice","when someone asks for advice"],
 "jung:o:danke":["Thank you","when someone says thank you"],
@@ -888,6 +891,111 @@ const EN={
 "paar:albern":["Being silly","when you're silly together"]
 };
 
+
+/* =========================================================
+   Weitere Beziehungswelten
+   lernen: Lehrkraft, Trainer/in, Ausbilder/in ↔ Lernende (asymmetrisch)
+           [id, emoji, name, "wenn …", icon, meme oben, meme unten] – alle Bildsprachen,
+           weil der Stil vom Alter der lernenden Person abhängt
+   team:   Kolleginnen und Kollegen, Führungskraft (gleichrangig)
+   ========================================================= */
+SETS.lernen=[
+  ["lob","👏","Lob vor allen","wenn vor allen gelobt wird","medal","Vor allen gelobt","Ich: tue cool. Innen: Konfetti"],
+  ["zutrauen","🗝️","Zutrauen","wenn eine schwierige Aufgabe zugetraut wird","key","„Das schaffst du“","…und ich hab's geschafft"],
+  ["erklaeren","💡","Nochmal erklären","wenn etwas geduldig ein zweites Mal erklärt wird","chat","Zum dritten Mal gefragt","Antwort: ganz ohne Seufzen"],
+  ["chance","🔁","Zweite Chance","wenn es nach einem Fehler eine zweite Chance gibt","branch","Fehler gemacht","Antwort: Probier's nochmal"],
+  ["nachfragen","🙋","Nachfragen","wenn nachgefragt wird, wie es wirklich geht","ear","„Alles okay bei dir?“","…und es interessiert wirklich"],
+  ["fortschritt","📈","Fortschritt sehen","wenn bemerkt wird, wie viel besser es schon klappt","summit","Vor drei Monaten: keine Ahnung","Heute: Jemand merkt's"],
+  ["name","😊","Beim Namen","wenn sich der eigene Name gemerkt wird","voice","Nicht „Du da hinten“","sondern mein Name"],
+  ["humor","😂","Humor","wenn zwischendurch zusammen gelacht wird","sun","Mitten im Stoff","ein Witz, der wirklich lustig ist"],
+  ["fair","⚖️","Fair sein","wenn alle gleich fair behandelt werden","scale","Keine Lieblinge","Alle zählen gleich"],
+  ["zeit","⏳","Zeit nehmen","wenn sich danach noch Zeit für Fragen genommen wird","cup","Stunde vorbei","aber Zeit für meine Frage"],
+  ["idee","🌟","Idee aufgreifen","wenn eine eigene Idee aufgegriffen wird","star","Meine Idee","wird tatsächlich umgesetzt"],
+  ["mut","💪","Mut machen","wenn vor einer Prüfung oder einem Wettkampf Mut gemacht wird","compass","Kurz vor der Prüfung","„Du bist gut vorbereitet“"],
+  ["highfive","🙌","Abklatschen","wenn nach einem Erfolg abgeklatscht wird","hug","Geschafft!","High five statt nur „gut“"],
+  ["feedback","📝","Ehrliche Rückmeldung","wenn freundlich gesagt wird, was noch besser geht","okmsg","Ehrliche Rückmeldung","und trotzdem ein gutes Gefühl"]];
+SWAP.lernen=[
+  ["danke","🙏","Danke","wenn Danke gesagt wird","heart","Ein ehrliches Danke","Ich: muss kurz schlucken"],
+  ["fragen","❓","Fragen stellen","wenn neugierige Fragen gestellt werden","chat","Endlich eine Frage","die zeigt: Es wurde zugehört"],
+  ["mitmachen","✋","Mitmachen","wenn engagiert mitgemacht wird","star","Alle machen mit","Ich: Ist heute Feiertag?"],
+  ["zuhoeren","👂","Zuhören","wenn aufmerksam zugehört wird","ear","Ich erkläre","und niemand schaut aufs Handy"],
+  ["dranbleiben","🔁","Dranbleiben","wenn weiter geübt wird, auch wenn es schwer ist","summit","Klappt noch nicht","wird trotzdem weiter geübt"],
+  ["erzaehlen","🗣️","Erfolge erzählen","wenn von einem Erfolg erzählt wird","voice","„Rate mal, was ich geschafft hab!“","Ich: Erzähl!"],
+  ["helfen","🤝","Anderen helfen","wenn anderen in der Gruppe geholfen wird","hug","Jemand erklärt es den anderen","Ich bin quasi arbeitslos"],
+  ["puenktlich","⏰","Pünktlich sein","wenn pünktlich und vorbereitet erschienen wird","sun","Alle pünktlich","Ich prüfe, ob ich träume"],
+  ["ehrlich","🙋","Ehrlich sein","wenn ehrlich gesagt wird, was nicht verstanden wurde","compass","„Hab ich nicht verstanden“","Endlich sagt es jemand"],
+  ["witz","😂","Zum Lachen bringen","wenn über einen Witz gelacht wird","music","Mein Witz","Gelacht wurde. Aus Mitleid? Egal."],
+  ["karte","🎁","Kleine Überraschung","wenn es eine selbstgemachte Karte oder Kleinigkeit gibt","gift","Eine selbstgemachte Karte","hängt jetzt an meiner Pinnwand"],
+  ["spaeter","👋","Später melden","wenn sich später jemand meldet und erzählt, was daraus geworden ist","call","Nachricht nach Jahren","„Wegen dir mache ich das heute“"]];
+SYM.team=[
+  ["kaffee","☕","Kaffee mitbringen","wenn einfach so ein Kaffee mitgebracht wird","cup"],
+  ["rueckendeckung","🛡️","Rückendeckung","wenn es in einer Besprechung Rückendeckung gibt","compass"],
+  ["lob","👏","Lob vor anderen","wenn die eigene Arbeit vor anderen gewürdigt wird","medal"],
+  ["einspringen","🏃","Einspringen","wenn bei Zeitdruck spontan geholfen wird","box"],
+  ["zuhoeren","👂","Zuhören","wenn nach einem stressigen Tag zugehört wird","ear"],
+  ["mittag","🍽️","Mittagspause","wenn ihr zusammen Pause macht","cutlery"],
+  ["lachen","😂","Zusammen lachen","wenn ihr zusammen lacht","sun"],
+  ["feedback","📝","Ehrliche Rückmeldung","wenn freundlich und ehrlich Rückmeldung gegeben wird","chat"],
+  ["mitdenken","🔔","Mitdenken","wenn an etwas Wichtiges erinnert wird","okmsg"],
+  ["erklaeren","💡","Etwas erklären","wenn geduldig etwas Neues erklärt wird","phone"],
+  ["geburtstag","🎂","An den Geburtstag denken","wenn an den Geburtstag gedacht wird","gift"],
+  ["nachfragen","💬","Nachfragen","wenn nachgefragt wird, wie es wirklich geht","heart"],
+  ["entschuldigung","🙏","Entschuldigung","wenn sich jemand ehrlich entschuldigt","sorry"],
+  ["insider","🤫","Insider-Witz","wenn ihr einen Insider-Witz habt","chat"],
+  ["feierabend","🌙","Feierabend-Gruß","wenn es ein „Schönen Feierabend!“ gibt","moon"],
+  ["vertrauen","🗝️","Vertrauen","wenn etwas Wichtiges anvertraut wird","key"]];
+Object.assign(TAGS,{
+  "lernen:y":{w:"humor highfive name",e:"chance nachfragen fair mut feedback zutrauen"},
+  "lernen:o":{w:"witz puenktlich mitmachen",e:"ehrlich dranbleiben spaeter zuhoeren"},
+  "team":{w:"lachen insider mittag kaffee",e:"rueckendeckung feedback entschuldigung vertrauen zuhoeren einspringen"}});
+Object.assign(WEIGHTS,{lernen:{s:30,w:35,e:35},team:{s:25,w:40,e:35}});
+/* Gesten, die nur passen, wenn man zusammen wohnt bzw. es um Eltern geht */
+const HOME_ONLY=new Set(["klein:o:aufraeumen","klein:o:anziehen","klein:o:tisch","kind:y:zettel","kind:y:hausaufgaben","kind:o:zimmer","kind:o:tisch","kind:o:geschwister","teen:y:tuer","teen:o:hilfe","jung:y:geld"]);
+const PARTNER_ONLY=new Set(["paar:plus_kaffeebett","paar:plus_kuechentanz"]);
+Object.assign(EN,{
+"lernen:y:lob":["Praise in front of all","when there's praise in front of everyone","Praised in front of everyone","Me: acting cool. Inside: confetti"],
+"lernen:y:zutrauen":["Being trusted","when a tough task is entrusted","“You can do it”","…and I did"],
+"lernen:y:erklaeren":["Explaining again","when something is patiently explained a second time","Asked for the third time","Answer: not a single sigh"],
+"lernen:y:chance":["Second chance","when there's a second chance after a mistake","Made a mistake","Answer: Try again"],
+"lernen:y:nachfragen":["Checking in","when someone asks how things really are","“Are you okay?”","…and they really want to know"],
+"lernen:y:fortschritt":["Seeing progress","when someone notices how much better it's going","Three months ago: no idea","Today: someone notices"],
+"lernen:y:name":["By name","when a name is remembered","Not “you at the back”","but my actual name"],
+"lernen:y:humor":["Humour","when you laugh together in between","In the middle of the lesson","a joke that's actually funny"],
+"lernen:y:fair":["Being fair","when everyone is treated equally fairly","No favourites","Everyone counts the same"],
+"lernen:y:zeit":["Taking time","when there's still time for questions afterwards","Lesson's over","but there's time for my question"],
+"lernen:y:idee":["Taking up an idea","when one's own idea is taken up","My idea","actually gets used"],
+"lernen:y:mut":["Encouragement","when there's encouragement before a test or a match","Right before the test","“You're well prepared”"],
+"lernen:y:highfive":["High five","when there's a high five after a success","Done it!","A high five instead of just “good”"],
+"lernen:y:feedback":["Honest feedback","when it's kindly said what could be better","Honest feedback","and still a good feeling"],
+"lernen:o:danke":["Thank you","when someone says thank you","A sincere thank you","Me: need a moment"],
+"lernen:o:fragen":["Asking questions","when curious questions are asked","Finally a question","that shows someone listened"],
+"lernen:o:mitmachen":["Joining in","when everyone joins in eagerly","Everyone joins in","Me: Is it a holiday?"],
+"lernen:o:zuhoeren":["Listening","when someone listens closely","I'm explaining","and nobody looks at their phone"],
+"lernen:o:dranbleiben":["Keeping at it","when practice continues even when it's hard","Doesn't work yet","practising anyway"],
+"lernen:o:erzaehlen":["Sharing successes","when someone shares a success","“Guess what I did!”","Me: Tell me!"],
+"lernen:o:helfen":["Helping others","when others in the group get help","Someone explains it to the others","I'm basically out of a job"],
+"lernen:o:puenktlich":["Being on time","when someone shows up on time and prepared","Everyone on time","Checking if I'm dreaming"],
+"lernen:o:ehrlich":["Being honest","when someone honestly says what they didn't understand","“I didn't get it”","Finally someone says it"],
+"lernen:o:witz":["Making them laugh","when someone laughs at a joke","My joke","They laughed. Out of pity? Who cares."],
+"lernen:o:karte":["Little surprise","when there's a handmade card or small gift","A handmade card","now on my pinboard"],
+"lernen:o:spaeter":["Getting in touch later","when someone gets in touch later to tell what became of it","Message after years","“I do this today because of you”"],
+"team:kaffee":["Bringing coffee","when a coffee is brought along just because"],
+"team:rueckendeckung":["Backing you up","when there's backing in a meeting"],
+"team:lob":["Praise in front of others","when one's work is recognised in front of others"],
+"team:einspringen":["Stepping in","when someone helps out spontaneously under time pressure"],
+"team:zuhoeren":["Listening","when someone listens after a stressful day"],
+"team:mittag":["Lunch break","when you take a break together"],
+"team:lachen":["Laughing together","when you laugh together"],
+"team:feedback":["Honest feedback","when feedback is given kindly and honestly"],
+"team:mitdenken":["Thinking ahead","when someone gives a reminder of something important"],
+"team:erklaeren":["Explaining","when something new is patiently explained"],
+"team:geburtstag":["Remembering a birthday","when someone remembers the birthday"],
+"team:nachfragen":["Checking in","when someone asks how things really are"],
+"team:entschuldigung":["Apology","when someone sincerely apologises"],
+"team:insider":["Inside joke","when you share an inside joke"],
+"team:feierabend":["End-of-day wish","when someone wishes you a nice evening"],
+"team:vertrauen":["Trust","when something important is entrusted"]});
+
 /* =========================================================
    Themenwelten, Personen, Beziehungen (zweisprachig)
    ========================================================= */
@@ -897,13 +1005,51 @@ const GROUPS={
   teen:{n:["Freiraum & Vertrauen","Space & Trust"],ico:"🎧",young:false,style:"meme",asym:true},
   jung:{n:["Eigene Wege","Own Paths"],ico:"🧭",young:false,style:"line",asym:true},
   kinder:{n:["Kinderbande","Kid Crew"],ico:"🧩",young:true,style:"emoji",asym:false},
-  paar:{n:["Zu zweit","Just the Two of You"],ico:"☕",young:false,style:"line",asym:false}
+  paar:{n:["Zu zweit","Just the Two of You"],ico:"☕",young:false,style:"line",asym:false},
+  lernen:{n:["Lernen & Wachsen","Learning & Growing"],ico:"🌱",young:false,style:"line",asym:true},
+  team:{n:["Im Team","In the Team"],ico:"💼",young:false,style:"line",asym:false}
 };
 const STAGES=[["kita","🧸","Kita-Alter","Toddler"],["schule","🎒","Grundschule","Primary school"],["teen","🎧","Teenager","Teenager"],["jung","🎓","Junge Erwachsene","Young adult"],["erwachsen","☕","Erwachsen","Adult"],["senior","🌿","Großeltern-Alter","Grandparent age"]];
 const rank=s=>STAGES.findIndex(x=>x[0]===s);
 const stageOf=s=>STAGES.find(x=>x[0]===s)||STAGES[4];
 const stageName=s=>{const x=stageOf(s);return EN_ON()?x[3]:x[2]};
-const RELS=[["eltern","Eltern & Kind","Parent & Child","👨‍👧",true],["grosseltern","Großeltern & Enkel","Grandparent & Grandchild","👵",true],["partner","Partner","Partners","💑",false],["geschwister","Geschwister","Siblings","👫",false],["freunde","Freunde","Friends","🤝",false]];
+/* Beziehungen
+   kind: asym = eine Seite kümmert sich/lehrt · sym = auf Augenhöhe · ask = zweiter Schritt: Wie fühlt es sich an?
+   o/y: Rollen für anonyme Mitspielende [Nominativ, Dativ] je Sprache · who: Frage, wenn das Alter die Rollen nicht klärt */
+const REL_CATS=[["fam","Familie","Family"],["frei","Freundschaft & Umfeld","Friends & neighbours"],["arbeit","Lernen & Arbeit","Learning & work"]];
+const RELS=[
+ {k:"eltern",cat:"fam",ic:"👨‍👧",de:"Eltern & Kind",en:"Parent & child",kind:"asym",home:true,idea:"eltern",
+   o:{de:["Mama oder Papa","Mama oder Papa"],en:["Mum or Dad","Mum or Dad"]},y:{de:["dein Kind","deinem Kind"],en:["your child","your child"]},who:["Wer ist Mama oder Papa?","Who is the parent?"]},
+ {k:"stief",cat:"fam",ic:"🏡",de:"Bonus-Eltern & Bonuskind",en:"Step-parent & stepchild",sub:["Stief-, Pflege- oder Patchworkfamilie","Step, foster or blended family"],kind:"ask",home:true,idea:"eltern",
+   o:{de:["Bonus-Mama oder -Papa","Bonus-Mama oder -Papa"],en:["your step-parent","your step-parent"]},y:{de:["dein Bonuskind","deinem Bonuskind"],en:["your stepchild","your stepchild"]},who:["Wer ist Bonus-Mama oder -Papa?","Who is the step-parent?"]},
+ {k:"grosseltern",cat:"fam",ic:"👵",de:"Großeltern & Enkel",en:"Grandparent & grandchild",kind:"asym",idea:"eltern",
+   o:{de:["Oma oder Opa","Oma oder Opa"],en:["Grandma or Grandpa","Grandma or Grandpa"]},y:{de:["dein Enkelkind","deinem Enkelkind"],en:["your grandchild","your grandchild"]},who:["Wer ist Oma oder Opa?","Who is the grandparent?"]},
+ {k:"onkel",cat:"fam",ic:"🎈",de:"Tante/Onkel & Nichte/Neffe",en:"Aunt/uncle & niece/nephew",kind:"ask",idea:"eltern",
+   o:{de:["Tante oder Onkel","Tante oder Onkel"],en:["your aunt or uncle","your aunt or uncle"]},y:{de:["deine Nichte oder dein Neffe","deiner Nichte oder deinem Neffen"],en:["your niece or nephew","your niece or nephew"]},who:["Wer ist Tante oder Onkel?","Who is the aunt or uncle?"]},
+ {k:"paten",cat:"fam",ic:"🌟",de:"Pate/Patin & Patenkind",en:"Godparent & godchild",kind:"ask",idea:"eltern",
+   o:{de:["Patentante oder -onkel","Patentante oder -onkel"],en:["your godparent","your godparent"]},y:{de:["dein Patenkind","deinem Patenkind"],en:["your godchild","your godchild"]},who:["Wer ist Pate oder Patin?","Who is the godparent?"]},
+ {k:"schwieger",cat:"fam",ic:"💍",de:"Schwiegereltern & Schwiegerkind",en:"In-laws",sub:["Schwiegersohn oder -tochter","Son- or daughter-in-law"],kind:"ask",idea:"eltern",
+   o:{de:["Schwiegermama oder -papa","Schwiegermama oder -papa"],en:["your parent-in-law","your parent-in-law"]},y:{de:["dein Schwiegerkind","deinem Schwiegerkind"],en:["your son- or daughter-in-law","your son- or daughter-in-law"]},who:["Wer sind die Schwiegereltern?","Who is the parent-in-law?"]},
+ {k:"partner",cat:"fam",ic:"💑",de:"Partner",en:"Partners",kind:"sym",idea:"partner"},
+ {k:"geschwister",cat:"fam",ic:"👫",de:"Geschwister",en:"Siblings",kind:"sym",idea:"geschwister"},
+ {k:"cousins",cat:"fam",ic:"🧩",de:"Cousins & Cousinen",en:"Cousins",kind:"sym",idea:"geschwister"},
+ {k:"freunde",cat:"frei",ic:"🤝",de:"Freunde",en:"Friends",kind:"sym",idea:"freunde"},
+ {k:"nachbarn",cat:"frei",ic:"🏘️",de:"Nachbarn",en:"Neighbours",kind:"sym",idea:"freunde"},
+ {k:"lehrer",cat:"arbeit",ic:"🍎",de:"Lehrkraft & Schüler/in",en:"Teacher & student",kind:"asym",mode:"lern",idea:"lernen",
+   o:{de:["deine Lehrerin oder dein Lehrer","deiner Lehrerin oder deinem Lehrer"],en:["your teacher","your teacher"]},y:{de:["deine Schülerin oder dein Schüler","deiner Schülerin oder deinem Schüler"],en:["your student","your student"]},who:["Wer unterrichtet?","Who is the teacher?"]},
+ {k:"trainer",cat:"arbeit",ic:"🏅",de:"Trainer/in & Schützling",en:"Coach & trainee",sub:["Sport, Musik, Hobby","Sports, music, hobbies"],kind:"asym",mode:"lern",idea:"lernen",
+   o:{de:["deine Trainerin oder dein Trainer","deiner Trainerin oder deinem Trainer"],en:["your coach","your coach"]},y:{de:["dein Schützling","deinem Schützling"],en:["your trainee","your trainee"]},who:["Wer trainiert?","Who is the coach?"]},
+ {k:"ausbildung",cat:"arbeit",ic:"🛠️",de:"Ausbilder/in & Azubi",en:"Mentor & apprentice",sub:["auch Mentoring, Einarbeitung","also mentoring, onboarding"],kind:"asym",mode:"lern",idea:"lernen",
+   o:{de:["deine Ausbilderin oder dein Ausbilder","deiner Ausbilderin oder deinem Ausbilder"],en:["your mentor","your mentor"]},y:{de:["dein Azubi","deinem Azubi"],en:["your apprentice","your apprentice"]},who:["Wer bildet aus?","Who is the mentor?"]},
+ {k:"kollegen",cat:"arbeit",ic:"💼",de:"Kolleginnen & Kollegen",en:"Colleagues",kind:"sym",team:true,idea:"kollegen"},
+ {k:"chef",cat:"arbeit",ic:"🧭",de:"Führungskraft & Mitarbeiter/in",en:"Manager & team member",kind:"sym",team:true,idea:"kollegen"}
+];
+const relDef=k=>RELS.find(r=>r.k===k)||RELS.find(r=>r.k==="freunde");
+/* gespeichert als "basis|modus|älter" – alte Einträge ("eltern") bleiben gültig */
+const parseRel=str=>{const [k,mode,older]=String(str||"freunde").split("|");return {k,mode:mode||"",older:older||""}};
+const MODES=[["fam","🫶","Fürsorglich","Caring","Fast wie Eltern und Kind: Eine Seite kümmert sich mehr.","Almost like parent and child: one side looks after the other more."],
+             ["frei","🤝","Auf Augenhöhe","On equal terms","Wie gute Freunde.","Like good friends."],
+             ["neu","🌱","Noch am Kennenlernen","Still getting to know each other","Locker, mit leichteren Fragen.","Relaxed, with lighter questions."]];
 const FACES=["👩","👨","🧔","👱‍♀️","👩‍🦱","👨‍🦱","👵","👴","👧","👦","🧒","👶","🧑","👩‍🦰","🧑‍🦱","🐻"];
 const WORDS={de:{young:["Ein kleines bisschen","Ein bisschen","Mittel","Doll","Ganz, ganz doll"],old:["Kaum","Ein wenig","Mittel","Deutlich","Total"]},
              en:{young:["A tiny bit","A little","Medium","A lot","So, so much"],old:["Barely","A little","Medium","Clearly","Totally"]}};
@@ -930,35 +1076,48 @@ const pairKey=(a,b)=>[a,b].sort().join("|");
 
 /* ---------- Aktuelles Paar ---------- */
 let CUR=null, R={};
-function labels(P,rel,younger){
+function labels(P,rel,younger,asym=CUR?CUR.asym:false){
+  const r=relDef(parseRel(rel).k);
   P.forEach((p,i)=>{
     if(!p.anon){p.nom=p.dat=p.name;return}
-    let x;
-    if(rel==="eltern")x=i===younger?L(["dein Kind","deinem Kind"],["your child","your child"]):L(["Mama oder Papa","Mama oder Papa"],["Mum or Dad","Mum or Dad"]);
-    else if(rel==="grosseltern")x=i===younger?L(["dein Enkelkind","deinem Enkelkind"],["your grandchild","your grandchild"]):L(["Oma oder Opa","Oma oder Opa"],["Grandma or Grandpa","Grandma or Grandpa"]);
-    else x=L(["dein Gegenüber","deinem Gegenüber"],["the other person","the other person"]);
+    const x=asym&&r.o?(i===younger?r.y:r.o)[EN_ON()?"en":"de"]:L(["dein Gegenüber","deinem Gegenüber"],["the other person","the other person"]);
     p.nom=x[0];p.dat=x[1];
   });
 }
 function makeCtx(A,B,rel){
-  const asym=RELS.find(r=>r[0]===rel)[4];
+  const pr=parseRel(rel), r=relDef(pr.k);
+  const mode=r.kind==="ask"?(pr.mode||"fam"):r.kind==="asym"?(r.mode||"fam"):"frei";
+  const asym=mode==="fam"||mode==="lern";
   const P=[A,B];
   let older=0,younger=1;
-  if(asym&&rank(A.stage)<rank(B.stage)){older=1;younger=0}
-  let g;
-  if(asym)g={kita:"klein",schule:"kind",teen:"teen"}[P[younger].stage]||"jung";
+  if(asym){
+    let o=-1;
+    if(pr.older)o=pr.older[0]==="#"?+pr.older.slice(1):P.findIndex(p=>p.id===pr.older);
+    if(o<0)o=rank(A.stage)<rank(B.stage)?1:0;
+    older=o;younger=1-o;
+  }
+  let g, st=null, young=null, love=asym;
+  if(mode==="lern"){
+    g="lernen";love=false;
+    const ys=P[younger].stage;
+    if(rank(ys)<=1){st="emoji";young=true}else if(ys==="teen")st="meme";else st="line";
+  }else if(asym)g={kita:"klein",schule:"kind",teen:"teen"}[P[younger].stage]||"jung";
+  else if(r.team)g="team";
   else g=Math.min(rank(A.stage),rank(B.stage))<=1?"kinder":"paar";
-  labels(P,rel,younger);
-  return {P,rel,asym,older,younger,g,n:0,played:{},key:(A.id&&B.id)?pairKey(A.id,B.id):null};
+  const ctx={P,rel,base:r.k,mode,asym,older,younger,g,st,young,love,home:!!r.home,idea:mode==="frei"||mode==="neu"?(r.kind==="ask"?"freunde":r.idea):r.idea,
+    wt:mode==="neu"?{s:40,w:45,e:15}:null,n:0,played:{},key:(A.id&&B.id)?pairKey(A.id,B.id):null};
+  labels(P,rel,younger,asym);
+  return ctx;
 }
 const group=()=>CUR?CUR.g:"kind";
-const style=()=>GROUPS[group()].style;
-const words=()=>WORDS[S.lang][GROUPS[group()].young?"young":"old"];
+const style=()=>CUR&&CUR.st||GROUPS[group()].style;
+const youngG=()=>CUR&&CUR.young!=null?CUR.young:GROUPS[group()].young;
+const words=()=>WORDS[S.lang][youngG()?"young":"old"];
 const isKid=p=>rank(p.stage)<=1;
 
 /* Inhalt in der aktuellen Sprache (eigene Bondings bleiben, wie sie geschrieben wurden) */
 const DE_NAME={};
-[["klein:y",SETS.klein],["klein:o",SWAP.klein],["kind:y",SETS.kind],["kind:o",SWAP.kind],["teen:y",SETS.teen],["teen:o",SWAP.teen],["jung:y",SETS.jung],["jung:o",SWAP.jung],["kinder",SYM.kinder],["paar",SYM.paar]]
+[...Object.keys(SETS).map(k=>[k+":y",SETS[k]]),...Object.keys(SWAP).map(k=>[k+":o",SWAP[k]]),...Object.keys(SYM).map(k=>[k,SYM[k]])]
   .forEach(([k,l])=>l.forEach(a=>DE_NAME[k+":"+a[0]]=a[2]));
 const nameFor=(id,fallback)=>EN_ON()?(EN[id]?EN[id][0]:fallback):(DE_NAME[id]||fallback);
 function loc(g){
@@ -966,16 +1125,17 @@ function loc(g){
   const e=EN[g.id];if(!e)return g;
   return {...g,n:e[0],p:e[1],mt:e[2]||g.mt,mb:e[3]||g.mb};
 }
+const fits=o=>!(HOME_ONLY.has(o.id)&&!CUR.home)&&!(PARTNER_ONLY.has(o.id)&&CUR.base!=="partner");
 function pool(ai){
   const g=CUR.g;
-  if(!CUR.asym)return [...SYM[g].map(a=>toObj(g,a)),...(S.custom[g]||[])];
+  if(!CUR.asym)return [...SYM[g].map(a=>toObj(g,a)).filter(fits),...(S.custom[g]||[])];
   const yAns=ai===CUR.younger;
-  return [...(yAns?SETS:SWAP)[g].map(a=>toObj(g+(yAns?":y":":o"),a)),...(S.custom[g]||[]).filter(c=>(c.dir||"kid")===(yAns?"kid":"parent"))];
+  return [...(yAns?SETS:SWAP)[g].map(a=>toObj(g+(yAns?":y":":o"),a)).filter(fits),...(S.custom[g]||[]).filter(c=>(c.dir||"kid")===(yAns?"kid":"parent"))];
 }
 const toObj=(pre,[id,e,n,p,i,mt,mb])=>({id:pre+":"+id,e,n,p,i,mt,mb,c:tagOf(pre,id)});
 
 function Q(role,ai,p){
-  const ans=CUR.P[ai], young=GROUPS[CUR.g].young, love=CUR.asym&&ai===CUR.younger;
+  const ans=CUR.P[ai], young=youngG(), love=CUR.love&&ai===CUR.younger;
   if(EN_ON()){
     if(role==="guess")return young?(love?`What do you think: How loved does ${ans.nom} feel ${p}?`:`What do you think: How happy is ${ans.nom} ${p}?`):`What do you think: How much does it mean to ${ans.nom} ${p}?`;
     return young?(love?`How loved do you feel ${p}?`:`How happy are you ${p}?`):`How much does it mean to you ${p}?`;
@@ -987,6 +1147,8 @@ const stripGuess=q=>q.replace("Was glaubst du: ","").replace("What do you think:
 
 /* Bild einer Geste in der Bildsprache der Themenwelt */
 function art(g,size,st=style()){
+  if(st==="emoji"&&!g.e&&g.i)st="line";
+  if(st!=="emoji"&&!g.i&&g.e)st="emoji";
   if(st==="meme")return `<div class="meme ${size==="sm"?"sm":""}"><span class="mt">${esc(g.mt||g.n)}</span>${iconSvg(g.i,1.4)}<span class="mb">${esc(g.mb||g.p)}</span></div>`;
   if(st==="line")return `<div class="gesture-big line" style="${size==="sm"?"width:88px;height:88px":""}">${iconSvg(g.i,1.4)}</div>`;
   return `<div class="gesture-big" style="${size==="sm"?"width:88px;height:88px;font-size:52px":""}">${esc(g.e||"❤️")}</div>`;
@@ -1393,18 +1555,46 @@ function newPerson(anon,done){
 function afterPeople(A,B,next){
   const key=A.id&&B.id?pairKey(A.id,B.id):null;
   if(key&&S.rel[key])return finish(A,B,S.rel[key],next);
-  show(`
-  <div class="duo"><span class="face">${A.av}</span><span class="face">${B.av}</span></div>
+  const duo=`<div class="duo"><span class="face">${A.av}</span><span class="face">${B.av}</span></div>`;
+  const done=rel=>{if(key){S.rel[key]=rel;save()}finish(A,B,rel,next)};
+  // Schritt 3: Wer hat welche Rolle? (nur wenn das Alter es nicht klärt)
+  const askWho=(r,mode)=>{
+    const ra=rank(A.stage),rb=rank(B.stage);
+    const clear=mode==="lern"?((ra<=2)!==(rb<=2)):ra!==rb;
+    if(clear)return done(r.k+"|"+mode);
+    const ref=(p,i)=>p.id||("#"+i);
+    show(`${duo}
+    <div class="say"><h2>${L(r.who[0],r.who[1])}</h2></div>
+    <div class="list">${[A,B].map((p,i)=>`<button class="item pick" data-o="${ref(p,i)}"><span class="e">${p.av}</span><div class="t"><div class="n">${p.anon?(i===0?L("Erste Person","First player"):L("Zweite Person","Second player")):esc(p.name)}</div><div class="g">${stageName(p.stage)}</div></div></button>`).join("")}</div>`);
+    stage.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>done(r.k+"|"+mode+"|"+b.dataset.o));
+  };
+  // Schritt 2: Wie fühlt sich die Beziehung an?
+  const askMode=r=>{
+    show(`${duo}
+    <div class="say"><h2>${L("Wie fühlt sich eure Beziehung an?","What does your relationship feel like?")}</h2></div>
+    <p class="hint">${L("Dann passen die Fragen besser zu euch.","Then the questions fit you better.")}</p>
+    <div class="list">${MODES.map(([m,ic,de,en,dd,de2])=>`<button class="item pick" data-m="${m}"><span class="e">${ic}</span><div class="t"><div class="n">${L(de,en)}</div><div class="g">${L(dd,de2)}</div></div></button>`).join("")}</div>`);
+    stage.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>b.dataset.m==="fam"?askWho(r,"fam"):done(r.k+"|"+b.dataset.m));
+  };
+  show(`${duo}
   <div class="say"><h2>${L("Wie gehört ihr zusammen?","How do you belong together?")}</h2></div>
   <p class="hint">${key?L("Fragen wir nur beim ersten Mal.","We only ask the first time."):L("Damit die Fragen zu euch passen.","So the questions fit you.")}</p>
-  <div class="list">${RELS.map(([k,de,en,ic])=>`<button class="item pick" data-r="${k}"><span class="e">${ic}</span><div class="t"><div class="n">${L(de,en)}</div></div></button>`).join("")}</div>`);
-  stage.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{if(key){S.rel[key]=b.dataset.r;save()}finish(A,B,b.dataset.r,next)});
+  ${REL_CATS.map(([c,de,en])=>`<div class="rel-cat">${L(de,en)}</div>
+  <div class="list rel-list">${RELS.filter(r=>r.cat===c).map(r=>`<button class="item pick" data-r="${r.k}"><span class="e">${r.ic}</span><div class="t"><div class="n">${L(r.de,r.en)}</div>${r.sub?`<div class="g">${L(r.sub[0],r.sub[1])}</div>`:""}</div></button>`).join("")}</div>`).join("")}
+  <p class="hint">${L("Nicht dabei? Wählt, was sich am ähnlichsten anfühlt.","Not listed? Pick what feels most similar.")}</p>`);
+  stage.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{
+    const r=relDef(b.dataset.r);
+    if(r.kind==="ask")return askMode(r);
+    if(r.kind==="asym")return askWho(r,r.mode||"fam");
+    done(r.k);
+  });
 }
-const ENDING={klein:"spruch",kind:"spruch",kinder:"spruch",teen:"meme",jung:"idee",paar:"idee"};
+const ENDING={klein:"spruch",kind:"spruch",kinder:"spruch",teen:"meme",jung:"idee",paar:"idee",team:"idee",lernen:"idee"};
 const LENGTH={spruch:[10,5],meme:[8,4],idee:[12,4]};
 function finish(A,B,rel,next){
   CUR=makeCtx(A,B,rel);
-  CUR.total=LENGTH[ENDING[CUR.g]][0];CUR.res=[];
+  CUR.end=CUR.g==="lernen"?{emoji:"spruch",meme:"meme",line:"idee"}[CUR.st]:ENDING[CUR.g];
+  CUR.total=LENGTH[CUR.end][0];CUR.res=[];
   if(CUR.key){S.lastPair=[A.id,B.id];save()}
   next();
 }
@@ -1441,7 +1631,7 @@ function drawGesture(ai,exclude){
   const own=list.filter(g=>g.custom);
   if(own.length&&Math.random()<.6)return own[Math.floor(Math.random()*own.length)];
   list=list.filter(g=>!g.custom).length?list.filter(g=>!g.custom):list;
-  const W=WEIGHTS[CUR.g], cats=["s","w","e"].filter(k=>list.some(g=>g.c===k));
+  const W=CUR.wt||WEIGHTS[CUR.g], cats=["s","w","e"].filter(k=>list.some(g=>g.c===k));
   if(cats.length){
     const tot=cats.reduce((n,k)=>n+W[k],0); let r=Math.random()*tot, cat=cats[0];
     for(const k of cats){if((r-=W[k])<0){cat=k;break}}
@@ -1462,7 +1652,7 @@ const progress=(n,t,code)=>`<div class="link-pill">${code?`📱 ${code} · `:""}
 /* ---------- Herzen wählen ---------- */
 function askScreen(role,p,g0,ai,withOther,pill){
   const g=loc(g0), guess=role==="guess", q=Q(role,ai,g.p), w=words(), kid=isKid(p);
-  const title=guess?L("Was glaubst du?","What do you think?"):(GROUPS[group()].young?L("Wie doll?","How much?"):L("Wie sehr?","How much?"));
+  const title=guess?L("Was glaubst du?","What do you think?"):(youngG()?L("Wie doll?","How much?"):L("Wie sehr?","How much?"));
   const hint=guess?stripGuess(q):(kid?L("Je größer das Herz, desto stärker.","The bigger the heart, the stronger."):q);
   const meme=style()==="meme";
   const hs=heartScale();
@@ -1592,8 +1782,8 @@ function create(after,gSel){
     <div class="form">
       <div class="field"><label>${L("Themenwelt","Theme")}</label><div class="stages">${Object.entries(GROUPS).map(([k,x])=>`<button class="chip" data-g="${k}" aria-pressed="${k===g}"><span class="st-ic">${x.ico}</span>${gName(k)}</button>`).join("")}</div></div>
       ${GROUPS[g].asym?`<div class="field"><label>${L("Wer antwortet?","Who answers?")}</label><div class="tabs">
-        <button class="chip" data-d="kid" aria-pressed="${dir==="kid"}">${L("Die Jüngeren","The younger one")}</button>
-        <button class="chip" data-d="parent" aria-pressed="${dir==="parent"}">${L("Die Älteren","The older one")}</button></div></div>`:""}
+        <button class="chip" data-d="kid" aria-pressed="${dir==="kid"}">${g==="lernen"?L("Wer lernt","The learner"):L("Die Jüngeren","The younger one")}</button>
+        <button class="chip" data-d="parent" aria-pressed="${dir==="parent"}">${g==="lernen"?L("Wer lehrt","The teacher"):L("Die Älteren","The older one")}</button></div></div>`:""}
       <div class="field"><label>${L("Bild","Picture")}</label>${picker}</div>
       <div class="field"><label for="bn">${L("Name","Name")}</label><input id="bn" maxlength="24" placeholder="${L("z. B. Geheimer Handschlag","e.g. Secret handshake")}" autocomplete="off"></div>
       <div class="field"><label for="bp">${L("Wann?","When?")}</label><div class="pre"><em>${W}</em><input id="bp" maxlength="60" placeholder="${L("ihr euren Handschlag macht","you do your handshake")}" autocomplete="off"></div></div>
@@ -1725,13 +1915,35 @@ const IDEEN={de:{
     w:["Teach each other something: a phone trick in exchange for an old family recipe.","Go on a trip like you used to: zoo, swimming pool or ice cream parlour."],
     e:["Ask each other questions you've never asked: What was I like as a child? What do you wish for me?","Agree on a ritual: breakfast for two, once a month."]}}};
 IDEEN.de.grosseltern=IDEEN.de.eltern;IDEEN.en.grosseltern=IDEEN.en.eltern;
+Object.assign(IDEEN.de,{
+  lernen:{s:["Schreibt euch gegenseitig eine Karte: Das habe ich von dir gelernt.","Zeigt euch je ein Lieblingsbuch, -lied oder -video zu eurem Thema."],
+    w:["Tauscht für zehn Minuten die Rollen: Wer sonst lernt, erklärt etwas.","Macht ein kleines Quiz übereinander: Was weiß ich über dich?"],
+    e:["Sprecht über ein Ziel für die nächsten Wochen und wie ihr es gemeinsam angeht.","Erzählt euch, welcher Moment euch beim Lernen am meisten Mut gemacht hat."]},
+  kollegen:{s:["Bringt euch nächste Woche gegenseitig einen Kaffee in eurer Lieblingssorte mit.","Schreibt euch eine kurze Danke-Nachricht für etwas Konkretes aus dem letzten Monat."],
+    w:["Geht zusammen essen und probiert etwas, das keiner von euch kennt.","Macht eine Pause mit Kicker, Tischtennis oder einer Runde um den Block."],
+    e:["Nehmt euch eine Viertelstunde: Was hilft mir bei der Zusammenarbeit mit dir am meisten?","Verabredet, wie ihr euch in stressigen Phasen Bescheid gebt, ohne dass es unangenehm wird."]}});
+Object.assign(IDEEN.en,{
+  lernen:{s:["Write each other a card: This is what I learned from you.","Show each other a favourite book, song or video about your topic."],
+    w:["Swap roles for ten minutes: whoever usually learns explains something.","Do a little quiz about each other: What do I know about you?"],
+    e:["Talk about a goal for the coming weeks and how you'll tackle it together.","Tell each other which moment gave you the most courage while learning."]},
+  kollegen:{s:["Next week, bring each other a coffee the way the other likes it.","Write each other a short thank-you note for something specific from last month."],
+    w:["Go for lunch together and try something neither of you knows.","Take a break with table football, table tennis or a walk around the block."],
+    e:["Take fifteen minutes: What helps me most when working with you?","Agree how you'll signal stressful phases to each other without it getting awkward."]}});
+const MEME_END_N={de:{
+  hoch:[["Wir zwei verstehen uns","Wissenschaft: verwirrt"],["Gleich geschätzt. Schon wieder.","Seid ihr dieselbe Person?"],["Wenn jemand dich besser kennt","als dein Algorithmus"]],
+  mittel:[["Ein paar Treffer, ein paar Überraschungen","Läuft. Halbwegs."],["Manchmal danebengelegen","aber wenigstens versucht"],["Halb richtig geraten","ist auch halb verstanden"]],
+  neu:[["Du dachtest, du kennst mich","Plot Twist"],["So viele Überraschungen","Zeit für ein Update"],["Heute gelernt:","Ich bin ein Mysterium. Aber ein nettes."]]},
+ en:{
+  hoch:[["We get each other","Science: confused"],["Same guess. Again.","Are you the same person?"],["When someone knows you better","than your algorithm"]],
+  mittel:[["Some hits, some surprises","Working. Sort of."],["Off sometimes","but at least we tried"],["Half right","is also half understood"]],
+  neu:[["You thought you knew me","Plot twist"],["So many surprises","Time for an update"],["Learned today:","I'm a mystery. A nice one, though."]]}};
 const CAT_WORD={de:{s:"liebevolle",w:"lustige",e:"tiefgründige"},en:{s:"loving",w:"funny",e:"deep"}};
 const HEAD={de:{hoch:"Herzensleser!",mittel:"Gute Spur!",neu:"Neues entdeckt!"},en:{hoch:"Heart readers!",mittel:"On the right track!",neu:"New discoveries!"}};
 const pickOne=a=>a[Math.floor(Math.random()*a.length)];
 
 let LAST=null;  // letztes Ergebnis, für das Teilen-Bild
 function endGame(){
-  const res=CUR.res||[], type=ENDING[CUR.g], ext=LENGTH[type][1], lg=S.lang;
+  const res=CUR.res||[], type=CUR.end||ENDING[CUR.g], ext=LENGTH[type][1], lg=S.lang;
   const nm=r=>r.custom?r.n:nameFor(r.id,r.n);
   const close=res.filter(r=>Math.abs(r.av-r.gv)<=1).length, ratio=res.length?close/res.length:0;
   const tier=ratio>=.7?"hoch":ratio>=.4?"mittel":"neu";
@@ -1756,7 +1968,7 @@ function endGame(){
     body=`<div class="quote">${esc(sp)}</div>
       ${t?`<div class="find">${thumb(t)}<div><b>${L("Herz-Mission für heute","Heart mission for today")}: ${esc(nm(t))}</b><span>${L(`Das hat ${esc(CUR.P[kid].nom)} heute am meisten bedeutet.`,`That meant the most to ${esc(CUR.P[kid].nom)} today.`)}</span></div></div>`:[0,1].map(topLine).join("")}`;
   }else if(type==="meme"){
-    const [mt,mb]=pickOne(MEME_END[lg][tier]);
+    const [mt,mb]=pickOne((CUR.home?MEME_END:MEME_END_N)[lg][tier]);
     const t=tops[CUR.asym?CUR.younger:1], icon=tier==="hoch"?"star":tier==="mittel"?"summit":"sun";
     LAST.mt=mt;LAST.mb=mb;LAST.icon=icon;LAST.sub=t?L(`Am meisten bedeutet: ${nm(t)}`,`Means the most: ${nm(t)}`):"";
     body=`<div class="meme"><span class="mt">${esc(mt)}</span>${iconSvg(icon,1.4)}<span class="mb">${esc(mb)}</span></div>
@@ -1765,7 +1977,7 @@ function endGame(){
   }else{
     const avg=k=>{const l=res.filter(r=>(r.c||"s")===k);return l.length?l.reduce((n,r)=>n+r.av,0)/l.length:0};
     const cat=["s","w","e"].sort((a,b)=>avg(b)-avg(a)||Math.random()-.5)[0];
-    const set=IDEEN[lg][CUR.rel]||IDEEN[lg].freunde, idee=pickOne(set[cat]);
+    const set=IDEEN[lg][CUR.idea]||IDEEN[lg].freunde, idee=pickOne(set[cat]);
     LAST.text=idee;LAST.sub=L("Unsere Idee für diese Woche","Our idea for this week");
     body=`<div class="idea"><span class="who-label">${L("Eure Idee für diese Woche","Your idea for this week")}</span><p>${esc(idee)}</p>
       <span class="hint">${L(`Weil euch heute vor allem ${CAT_WORD.de[cat]} Momente viel bedeutet haben.`,`Because ${CAT_WORD.en[cat]} moments meant the most to you today.`)}</span></div>
@@ -2193,11 +2405,11 @@ function mpReveal(myV,oV){
    ========================================================= */
 const PLUS_PACK={
  "klein:y":[["plus_wunsch","🌠","Wunsch-Zeit","wenn ihr euch gemeinsam etwas wünscht","s"],["plus_pfuetze","🥾","Pfützenspringen","wenn ihr zusammen in Pfützen springt","w"],["plus_dunkel","🌙","Keine Angst","wenn bei Angst im Dunkeln jemand da ist","e"]],
- "klein:o":[["plus_fruehstueck","🥣","Frühstück servieren","wenn ein Frühstück gebracht wird","s"],["plus_bauchlachen","🤭","Bauchlachen","wenn das Kind vor Lachen nicht mehr kann","w"],["plus_abgeben","🍪","Abgeben","wenn etwas Leckeres freiwillig geteilt wird","e"]],
+ "klein:o":[["plus_fruehstueck","🥣","Frühstück servieren","wenn ein Frühstück gebracht wird","s"],["plus_bauchlachen","🤭","Bauchlachen","wenn vor Lachen keiner mehr kann","w"],["plus_abgeben","🍪","Abgeben","wenn etwas Leckeres freiwillig geteilt wird","e"]],
  "kind:y":[["plus_brief","💌","Geheimer Brief","wenn ein Brief unterm Kopfkissen liegt","s"],["plus_hoehle","⛺","Kissenhöhle","wenn ihr eine Höhle aus Decken baut","w"],["plus_zutrauen","🗝️","Zutrauen","wenn dir etwas Wichtiges zugetraut wird","e"]],
- "kind:o":[["plus_neugier","❓","Neugier","wenn nach dem Tag der Eltern gefragt wird","s"],["plus_neuerwitz","📚","Neuer Witz","wenn ein neuer Witz aus der Schule mitgebracht wird","w"],["plus_ehrlich","🙋","Ehrlich sein","wenn ein Fehler ehrlich zugegeben wird","e"]],
- "teen:y":[["plus_wlan","","WLAN-Passwort","wenn das WLAN-Passwort ohne Diskussion verraten wird","key","Ich: Wie ist das WLAN-Passwort?","Eltern: Sag ich dir. Einfach so.","w"],["plus_ausschlafen","","Ausschlafen","wenn man am Wochenende ausschlafen darf","moon","Samstag, 11 Uhr","Niemand saugt vor meiner Tür","w"],["plus_entscheiden","","Selbst entscheiden","wenn eine große Entscheidung zugetraut wird","compass","Eltern: Entscheide du","Ich: …wirklich?","e"]],
- "teen:o":[["plus_kochen","","Bekocht werden","wenn das Teen etwas kocht","bowl","Teen kocht Abendessen","Rauchmelder bleibt still","w"],["plus_foto","","Gemeinsames Foto","wenn freiwillig ein Foto zusammen gemacht wird","camera","Teen will ein Foto mit mir","und postet es sogar","s"],["plus_nachfrage","","Nachfragen","wenn nach dem Tag der Eltern gefragt wird","chat","Teen fragt: Wie war dein Tag?","Ich: muss mich kurz setzen","e"]],
+ "kind:o":[["plus_neugier","❓","Neugier","wenn zurückgefragt wird, wie der Tag war","s"],["plus_neuerwitz","📚","Neuer Witz","wenn ein neuer Witz aus der Schule mitgebracht wird","w"],["plus_ehrlich","🙋","Ehrlich sein","wenn ein Fehler ehrlich zugegeben wird","e"]],
+ "teen:y":[["plus_wlan","","WLAN-Passwort","wenn das WLAN-Passwort ohne Diskussion verraten wird","key","Ich: Wie ist das WLAN-Passwort?","Antwort: Sag ich dir. Einfach so.","w"],["plus_ausschlafen","","Ausschlafen","wenn man am Wochenende ausschlafen darf","moon","Samstag, 11 Uhr","Niemand saugt vor meiner Tür","w"],["plus_entscheiden","","Selbst entscheiden","wenn eine große Entscheidung zugetraut wird","compass","„Entscheide du“","Ich: …wirklich?","e"]],
+ "teen:o":[["plus_kochen","","Bekocht werden","wenn das Teen etwas kocht","bowl","Teen kocht Abendessen","Rauchmelder bleibt still","w"],["plus_foto","","Gemeinsames Foto","wenn freiwillig ein Foto zusammen gemacht wird","camera","Teen will ein Foto mit mir","und postet es sogar","s"],["plus_nachfrage","","Nachfragen","wenn zurückgefragt wird, wie der Tag war","chat","Teen fragt: Wie war dein Tag?","Ich: muss mich kurz setzen","e"]],
  "jung:y":[["plus_paket","","Paket von zu Hause","wenn ein Paket von zu Hause kommt","gift","s"],["plus_vorbild","","Vorbild sein","wenn jemand sagt: Das habe ich von dir gelernt","star","e"],["plus_tradition","","Familientradition","wenn eine alte Familientradition weiterlebt","house","s"]],
  "jung:o":[["plus_rezept","","Nach dem Rezept fragen","wenn nach einem Familienrezept gefragt wird","bowl","s"],["plus_beibringen","","Neues zeigen","wenn etwas Neues beigebracht wird","phone","w"],["plus_spaetdank","","Später Dank","wenn für etwas von früher gedankt wird","heart","e"]],
  "kinder":[["plus_geheimbund","🏴‍☠️","Geheimbund","wenn ihr einen Geheimbund gründet","w"],["plus_mut","💪","Mut machen","wenn jemand sagt: Du schaffst das","e"],["plus_ausleihen","🧸","Lieblingsding leihen","wenn das Lieblingsspielzeug ausgeliehen wird","s"]],
@@ -2208,20 +2420,20 @@ Object.assign(EN,{
 "klein:y:plus_pfuetze":["Puddle jumping","when you jump in puddles together"],
 "klein:y:plus_dunkel":["Not scared","when someone is there when it's scary in the dark"],
 "klein:o:plus_fruehstueck":["Breakfast service","when breakfast is brought over"],
-"klein:o:plus_bauchlachen":["Belly laughs","when the child can't stop laughing"],
+"klein:o:plus_bauchlachen":["Belly laughs","when nobody can stop laughing"],
 "klein:o:plus_abgeben":["Sharing a treat","when something yummy is shared by choice"],
 "kind:y:plus_brief":["Secret letter","when there's a letter under the pillow"],
 "kind:y:plus_hoehle":["Blanket fort","when you build a fort out of blankets"],
 "kind:y:plus_zutrauen":["Being trusted","when you're trusted with something important"],
-"kind:o:plus_neugier":["Curiosity","when someone asks about the parent's day"],
+"kind:o:plus_neugier":["Curiosity","when someone asks back how the day was"],
 "kind:o:plus_neuerwitz":["New joke","when a new joke comes home from school"],
 "kind:o:plus_ehrlich":["Being honest","when a mistake is honestly admitted"],
-"teen:y:plus_wlan":["Wi-Fi password","when the Wi-Fi password is shared without a debate","Me: What's the Wi-Fi password?","Parents: Here you go. Just like that."],
+"teen:y:plus_wlan":["Wi-Fi password","when the Wi-Fi password is shared without a debate","Me: What's the Wi-Fi password?","Answer: Here you go. Just like that."],
 "teen:y:plus_ausschlafen":["Sleeping in","when you get to sleep in at the weekend","Saturday, 11 am","Nobody hoovering outside my door"],
-"teen:y:plus_entscheiden":["Deciding yourself","when you're trusted with a big decision","Parents: You decide","Me: …really?"],
+"teen:y:plus_entscheiden":["Deciding yourself","when you're trusted with a big decision","“You decide”","Me: …really?"],
 "teen:o:plus_kochen":["Being cooked for","when the teen cooks something","Teen cooks dinner","Smoke alarm stays quiet"],
 "teen:o:plus_foto":["Photo together","when a photo together is taken by choice","Teen wants a photo with me","and even posts it"],
-"teen:o:plus_nachfrage":["Asking back","when someone asks about the parent's day","Teen asks: How was your day?","Me: need to sit down"],
+"teen:o:plus_nachfrage":["Asking back","when someone asks back how the day was","Teen asks: How was your day?","Me: need to sit down"],
 "jung:y:plus_paket":["Parcel from home","when a parcel arrives from home"],
 "jung:y:plus_vorbild":["Role model","when someone says: I learned that from you"],
 "jung:y:plus_tradition":["Family tradition","when an old family tradition lives on"],

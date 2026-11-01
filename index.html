@@ -305,6 +305,14 @@ button.who-box .face{width:84px;height:84px;font-size:50px}
 .prev-back{position:fixed;z-index:40;right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));
   background:#262625;color:#FDD602;border-radius:999px;padding:10px 16px;font-family:var(--display);font-weight:600;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.3)}
 
+.support-btn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:2px solid var(--accent);border-radius:20px;padding:12px 14px;min-height:64px}
+.support-btn .sb-ic{flex:none;width:44px;height:44px;border-radius:14px;background:var(--accent);display:grid;place-items:center;font-size:22px}
+.support-btn .sb-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.support-btn b{font-family:var(--display);font-weight:600;font-size:17px}
+.support-btn .sb-t span{font-size:13px;color:var(--muted);line-height:1.3}
+.support-btn .sb-go{font-family:var(--display);font-size:28px;line-height:1;color:var(--muted)}
+.support-btn:active{background:var(--heart-soft)}
+
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{border-radius:16px;padding:8px 4px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:14px;line-height:1.1}
@@ -1458,7 +1466,7 @@ function endGame(){
   ${body}
   ${allowed?`<div id="tipSlot">${S.supporter
     ?`<p class="thanks-line">💛 ${L("Danke, dass ihr mBond unterstützt!","Thank you for supporting mBond!")}</p>`
-    :`<button class="tiny support-link" id="supportLink">☕ ${hasMinor()?L("Für Eltern: mBond unterstützen","For parents: support mBond"):L("mBond unterstützen","Support mBond")} · ${L("Dankeschön freischalten","unlock a thank-you")}</button>`}</div>`:""}
+    :`<button class="support-btn" id="supportLink"><span class="sb-ic" aria-hidden="true">☕</span><span class="sb-t"><b>${hasMinor()?L("Für Eltern: mBond unterstützen","For parents: support mBond"):L("mBond unterstützen","Support mBond")}</b><span>${L(`Dankeschön: ${PLUS_COUNT} neue Fragen und goldene Herzen`,`Thank-you: ${PLUS_COUNT} new questions and golden hearts`)}</span></span><span class="sb-go" aria-hidden="true">›</span></button>`}</div>`:""}
   <div class="push">
     <button class="big soft" id="share">${SHARE}<span>${L("Ergebnis teilen","Share result")}</span></button>
     ${!M.nr||M.host?`<button class="big soft" id="more">${PLUS}<span>${L(`${ext} Fragen mehr`,`${ext} more questions`)}</span></button>`:`<p class="hint">${L("Verlängern kann das Gerät, das den Code erstellt hat.","The device that created the code can extend the game.")}</p>`}

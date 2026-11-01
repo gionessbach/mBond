@@ -411,6 +411,13 @@ textarea#fbText:focus{outline:none;border-color:var(--heart)}
 .beta-note{margin:-4px 0 0;font-size:13px;color:var(--muted)}
 @media (min-width:700px) and (min-height:600px){.beta{font-size:18px}.beta-sm{font-size:12px}}
 
+.speaking{position:relative}
+.scale button.speaking svg{transform:scale(1.22);filter:drop-shadow(0 0 10px var(--accent))}
+.scale button.speaking .hp{fill:var(--accent)}
+.scale button.on.speaking .hp{fill:var(--heart)}
+.hint.speaking,h2.speaking{background:var(--heart-soft);border-radius:12px;box-shadow:0 0 0 6px var(--heart-soft)}
+.scale button svg{transition:transform .2s,filter .2s}
+
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{border-radius:16px;padding:8px 4px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:14px;line-height:1.1}
@@ -1106,6 +1113,51 @@ function kiSpeak(text,fromTap){
     deviceSpeak(text,fromTap);
   });
 }
+
+/* ---------- Vorlesen in Schritten, mit Hervorhebung ----------
+   Liest Frage und Antwortstufen nacheinander vor und hebt dabei das jeweilige Element hervor. */
+let seqToken=0;
+function stopSeq(){seqToken++;try{speechSynthesis.cancel()}catch(e){}piperStop();kiJob++;document.querySelectorAll(".speaking").forEach(e=>e.classList.remove("speaking"))}
+function sayOnce(text,my){
+  return new Promise(res=>{
+    if(!S.sound||my!==seqToken)return res();
+    const useKI=S.voice&&KI[S.voice]&&!EN_ON()&&kiAvail;
+    if(useKI){
+      const job=++kiJob;
+      piperLoad(S.voice).then(()=>phonemize(text)).then(ids=>piperSynth(ids)).then(pcm=>{
+        if(job!==kiJob||my!==seqToken)return res();
+        const ctx=audioCtx();if(!ctx)return res();
+        const buf=ctx.createBuffer(1,pcm.length,piper.cfg.audio.sample_rate);buf.getChannelData(0).set(pcm);
+        const src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);
+        src.onended=()=>{if(piper.src===src)piper.src=null;res()};piper.src=src;src.start();
+      }).catch(()=>res());
+      return;
+    }
+    if(!TTS_OK)return res();
+    try{
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang=voice?voice.lang:(EN_ON()?"en-GB":"de-DE");u.rate=.92;u.pitch=1.1;if(voice)u.voice=voice;
+      let done=false;const fin=()=>{if(!done){done=true;res()}};
+      u.onend=fin;u.onerror=fin;ttsKeep.push(u);if(ttsKeep.length>8)ttsKeep.shift();
+      setTimeout(fin,Math.max(2500,text.length*140)); // Sicherheitsnetz, falls ein Gerät kein Ende meldet
+      speechSynthesis.speak(u);
+    }catch(e){res()}
+  });
+}
+async function speakSeq(items,fromTap){
+  stopSeq();const my=seqToken;
+  if(!S.sound)return;
+  if(!TTS_OK&&!(S.voice&&KI[S.voice]&&kiAvail)){if(fromTap)ttsMissing();return}
+  if(S.voice&&KI[S.voice]&&kiAvail&&!(piper.name===S.voice&&piper.sess)&&fromTap)toast(L(`Die KI-Stimme ${KI[S.voice][0]} wird vorbereitet …`,`Preparing the AI voice ${KI[S.voice][0]} …`));
+  await new Promise(r=>setTimeout(r,120));
+  for(const it of items){
+    if(my!==seqToken)return;
+    if(it.el)it.el.classList.add("speaking");
+    await sayOnce(it.text,my);
+    if(it.el)it.el.classList.remove("speaking");
+    await new Promise(r=>setTimeout(r,180));
+  }
+}
 /* Stimme vorab laden, sobald sie gewählt ist (große Datei, nur einmal) */
 function preloadKI(onProg){if(S.voice&&KI[S.voice])return piperLoad(S.voice,onProg);return Promise.resolve()}
 let voice=null, ttsUnlocked=false, ttsWarned=false, speakTimer=0;
@@ -1206,7 +1258,8 @@ setHeader();
 
 const isTablet=()=>Math.min(innerWidth,innerHeight)>=600;
 const heartScale=()=>isTablet()?1.45:1;
-function show(html,isHome,compact){stage.classList.remove("screen");void stage.offsetWidth;stage.classList.add("screen");stage.classList.toggle("compact",!!compact);stage.innerHTML=html;$("#homeBtn").hidden=!!isHome;window.scrollTo(0,0)}
+function show(html,isHome,compact){try{stopSeq()}catch(e){}
+stage.classList.remove("screen");void stage.offsetWidth;stage.classList.add("screen");stage.classList.toggle("compact",!!compact);stage.innerHTML=html;$("#homeBtn").hidden=!!isHome;window.scrollTo(0,0)}
 const enable=el=>{el.disabled=false;el.style.opacity=1};
 const nudge=(title,sub)=>`<button class="nudge" data-create><span class="plus">+</span><div><b>${title}</b><span>${sub}</span></div></button>`;
 function wireNudge(after){stage.querySelectorAll("[data-create]").forEach(b=>b.onclick=()=>create(after))}
@@ -1419,7 +1472,7 @@ function askScreen(role,p,g0,ai,withOther,pill){
        :`<div class="duo draw spin"><div class="face">${p.av}</div>${art(g)}</div><div class="gname">${esc(g.n)}</div>`}
   </div>
   <div class="ask-ctl">
-  <div class="say"><h2>${title}</h2>${kid?sayBtn(q):""}</div>
+  <div class="say"><h2>${title}</h2>${kid?`<button class="icon-btn replay" id="replay" aria-label="${L("Frage und Antworten vorlesen","Read question and answers aloud")}">${SPK_SMALL}</button>`:""}</div>
   <p class="hint">${esc(hint)}</p>
   <div class="scale" role="radiogroup" aria-label="${L("Stärke, 1 bis 5","Strength, 1 to 5")}">
     ${[1,2,3,4,5].map(i=>`<button role="radio" aria-checked="false" aria-label="${w[i-1]}" data-v="${i}">${heart(Math.round((30+i*9)*hs))}</button>`).join("")}
@@ -1428,14 +1481,19 @@ function askScreen(role,p,g0,ai,withOther,pill){
   </div>
   </div>
   <div class="push"><button class="big primary" id="ok" disabled>${CHECK}<span>${L("Fertig","Done")}</span></button></div>`,false,isTablet());
-  if(kid)speak(q);
   let v=0;
+  const readAll=fromTap=>{
+    const btns=[...stage.querySelectorAll(".scale button")];
+    speakSeq([{text:q,el:stage.querySelector(".ask-ctl .hint")||stage.querySelector("h2")}].concat(btns.map((b,i)=>({text:w[i],el:b}))),fromTap);
+  };
+  if(kid){readAll(false);$("#replay").onclick=()=>{unlockTTS();readAll(true)}}
   stage.querySelectorAll(".scale button").forEach(b=>b.onclick=()=>{
+    stopSeq();
     v=+b.dataset.v;
     stage.querySelectorAll(".scale button").forEach(x=>{x.classList.toggle("on",+x.dataset.v<=v);x.setAttribute("aria-checked",+x.dataset.v===v)});
-    $("#ok").disabled=false;if(kid)speak(w[v-1]);
+    $("#ok").disabled=false; // bewusst KEIN Vorlesen der Wahl: die andere Person hört mit
   });
-  return new Promise(res=>{$("#ok").onclick=()=>{if(v)res(v)}});
+  return new Promise(res=>{$("#ok").onclick=()=>{if(v){stopSeq();res(v)}}});
 }
 async function ask(role){
   const guess=role==="guess", p=CUR.P[guess?R.gi:R.ai];
@@ -1720,7 +1778,7 @@ function endGame(){
   ${allowed?`<div id="tipSlot">${S.supporter
     ?`<p class="thanks-line">💛 ${L("Danke, dass ihr mBond unterstützt!","Thank you for supporting mBond!")}</p><button class="tiny" id="supportLink">☕ ${hasMinor()?L("Für Eltern: nochmal unterstützen","For parents: support again"):L("Nochmal unterstützen","Support again")}</button>`
     :`<button class="support-btn" id="supportLink"><span class="sb-ic" aria-hidden="true">☕</span><span class="sb-t"><b>${hasMinor()?L("Für Eltern: mBond unterstützen","For parents: support mBond"):L("mBond unterstützen","Support mBond")}</b><span>${L(`Dankeschön: ${PLUS_COUNT} neue Fragen und goldene Herzen`,`Thank-you: ${PLUS_COUNT} new questions and golden hearts`)}</span></span><span class="sb-go" aria-hidden="true">›</span></button>`}</div>`:""}
-  ${FEEDBACK_ON&&!S.fbDone&&!S.fbLater?`<button class="support-btn fb-btn" id="fbEnd"><span class="sb-ic" aria-hidden="true">💬</span><span class="sb-t"><b>${L("Kurzes Feedback für die Testphase?","Quick feedback for the test phase?")}</b><span>${L("Für Erwachsene · 8 kurze Fragen · etwa 1 Minute","For adults · 8 short questions · about 1 minute")}</span></span><span class="sb-go" aria-hidden="true">›</span></button>`:""}
+  ${FEEDBACK_ON&&!S.fbDone&&!S.fbLater?`<button class="support-btn fb-btn" id="fbEnd"><span class="sb-ic" aria-hidden="true">💬</span><span class="sb-t"><b>${L("Kurzes Feedback für die Testphase?","Quick feedback for the test phase?")}</b><span>${L("Für Erwachsene · 9 kurze Fragen · etwa 1–2 Minuten","For adults · 9 short questions · about 1–2 minutes")}</span></span><span class="sb-go" aria-hidden="true">›</span></button>`:""}
   <div class="push">
     <button class="big soft" id="share">${SHARE}<span>${L("Ergebnis teilen","Share result")}</span></button>
     ${!M.nr||M.host?`<button class="big soft" id="more">${PLUS}<span>${L(`${ext} Fragen mehr`,`${ext} more questions`)}</span></button>`:`<p class="hint">${L("Verlängern kann das Gerät, das den Code erstellt hat.","The device that created the code can extend the game.")}</p>`}
@@ -2298,6 +2356,8 @@ function feedback(after){
     {k:"amount",t:L("Wie viel wäre es dir wert?","How much would it be worth to you?"),type:"single",when:a=>a.pay==="yes"||a.pay==="maybe",o:[["1",L("bis 1 €","up to €1")],["2-3",L("2–3 €","€2–3")],["4-5",L("4–5 €","€4–5")],["6-10",L("6–10 €","€6–10")],["more",L("mehr als 10 €","more than €10")]],sub:L("Einmalig, für die App oder ein Themenpaket","One-off, for the app or a theme pack")},
     {k:"model",t:L("Wie würdest du am liebsten bezahlen?","How would you prefer to pay?"),type:"single",when:a=>a.pay==="yes"||a.pay==="maybe",o:[["once",L("Einmal für die ganze App","Once for the whole app")],["packs",L("Einzelne Themenpakete","Single theme packs")],["tip",L("Freiwilliges Trinkgeld","Voluntary tip")],["sub",L("Kleines Abo","Small subscription")]]},
     {k:"best",t:L("Was hat dir am besten gefallen?","What did you like best?"),type:"multi",o:[["reveal",L("Das gemeinsame Aufdecken","Revealing together")],["questions",L("Die Fragen","The questions")],["own",L("Eigene Bondings","Own bondings")],["ending",L("Ergebnis am Ende","The result at the end")],["voice",L("Vorlesen","Reading aloud")],["memes",L("Memes / Bilder","Memes / pictures")],["two",L("Zwei Geräte","Two devices")],["album",L("Herz-Album","Heart album")]]},
+    {k:"insight",t:L("Gab es eine Erkenntnis über die Erwartungen des Anderen, die dich überrascht hat?","Did you discover something about the other person's expectations that surprised you?"),type:"single",o:[["big",L("Ja, eine große Überraschung","Yes, a big surprise")],["small",L("Ja, eine kleine","Yes, a small one")],["no",L("Nein, eher nicht","Not really")]]},
+    {k:"insightText",t:L("Was hat dich überrascht?","What surprised you?"),type:"text",field:"insightText",when:a=>a.insight==="big"||a.insight==="small",sub:L("Optional, ein Satz reicht.","Optional, one sentence is enough.")},
     {k:"text",t:L("Hast du noch Verbesserungsvorschläge?","Any suggestions for improvement?"),type:"text",sub:L("Was war unklar, was fehlt, was würdest du ändern?","What was unclear, what's missing, what would you change?")}
   ];
   let i=0;
@@ -2308,7 +2368,8 @@ function feedback(after){
     if(q.type==="hearts")body=`<div class="scale" role="radiogroup">${[1,2,3,4,5].map(v=>`<button role="radio" data-h="${v}" aria-label="${v}" aria-checked="${A[q.k]===v}" class="${A[q.k]>=v?"on":""}">${heart(Math.round((30+v*9)*heartScale()))}</button>`).join("")}</div>`;
     if(q.type==="single")body=`<div class="list fb-list">${q.o.map(([k,t])=>`<button class="item pick vo" data-o="${k}" aria-pressed="${A[q.k]===k}"><div class="t"><div class="n">${t}</div></div>${A[q.k]===k?CHECK:""}</button>`).join("")}</div>`;
     if(q.type==="multi")body=`<p class="hint" style="margin:0">${L("Mehrere möglich","Choose any")}</p><div class="list fb-list">${q.o.map(([k,t])=>{const on=(A[q.k]||[]).includes(k);return `<button class="item pick vo" data-m="${k}" aria-pressed="${on}"><div class="t"><div class="n">${t}</div></div>${on?CHECK:""}</button>`}).join("")}</div>`;
-    if(q.type==="text")body=`<div class="field"><textarea id="fbText" rows="6" maxlength="1500" placeholder="${L("Alles ist hilfreich, auch Kleinigkeiten.","Anything helps, even small things.")}">${esc(A.text||"")}</textarea></div>`;
+    const fk=q.field||"text";
+    if(q.type==="text")body=`<div class="field"><textarea id="fbText" rows="6" maxlength="1500" placeholder="${L("Alles ist hilfreich, auch Kleinigkeiten.","Anything helps, even small things.")}">${esc(A[fk]||"")}</textarea></div>`;
     show(`
     <div class="dots" aria-hidden="true">${list.map((_,k)=>`<span class="${k===i?"on":""}"></span>`).join("")}</div>
     <div class="say"><h2>${q.t}</h2></div>
@@ -2321,9 +2382,9 @@ function feedback(after){
     stage.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{A[q.k]=+b.dataset.h;draw()});
     stage.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>{A[q.k]=b.dataset.o;draw()});
     stage.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{const l=A[q.k]||(A[q.k]=[]);const k=b.dataset.m;A[q.k]=l.includes(k)?l.filter(x=>x!==k):l.concat(k);draw()});
-    const ta=$("#fbText");if(ta)ta.oninput=()=>{A.text=ta.value};
-    $("#fbNext").onclick=()=>{if(ta)A.text=ta.value;if(last)return done();i++;draw()};
-    const bk=$("#fbBack");if(bk)bk.onclick=()=>{if(ta)A.text=ta.value;i--;draw()};
+    const ta=$("#fbText");if(ta)ta.oninput=()=>{A[fk]=ta.value};
+    $("#fbNext").onclick=()=>{if(ta)A[fk]=ta.value;if(last)return done();i++;draw()};
+    const bk=$("#fbBack");if(bk)bk.onclick=()=>{if(ta)A[fk]=ta.value;i--;draw()};
     $("#fbStop").onclick=()=>{if(i===0){S.fbLater=true;save()}(after||home)()};
   };
   const label=(k,v)=>{const q=Qs.find(x=>x.k===k);if(!q||!q.o)return v;const f=o=>(q.o.find(x=>x[0]===o)||[o,o])[1];return Array.isArray(v)?v.map(f).join(", "):f(v)};
@@ -2337,6 +2398,7 @@ function feedback(after){
     if(A.pay)track("fb/pay/"+A.pay);
     if(A.amount)track("fb/amount/"+A.amount);
     if(A.model)track("fb/model/"+A.model);
+    if(A.insight)track("fb/insight/"+A.insight);
     (A.best||[]).forEach(v=>track("fb/best/"+v));
     S.fbDone=true;save();
     const summary=[
@@ -2347,9 +2409,10 @@ function feedback(after){
       A.recommend?`${L("Weiterempfehlen","Recommend")}: ${label("recommend",A.recommend)}`:"",
       A.pay?`${L("Bezahlen","Pay")}: ${label("pay",A.pay)}${A.amount?" · "+label("amount",A.amount):""}${A.model?" · "+label("model",A.model):""}`:"",
       A.best&&A.best.length?`${L("Am besten","Best")}: ${label("best",A.best)}`:"",
+      A.insight?`${L("Überraschung","Surprise")}: ${label("insight",A.insight)}${A.insightText&&A.insightText.trim()?" · "+A.insightText.trim():""}`:"",
       A.text&&A.text.trim()?`${L("Vorschläge","Suggestions")}: ${A.text.trim()}`:""
     ].filter(Boolean).join("\n");
-    const hasText=!!(A.text&&A.text.trim());
+    const hasText=!!((A.text&&A.text.trim())||(A.insightText&&A.insightText.trim()));
     show(`
     <div class="say"><h2>💛 ${L("Danke für dein Feedback!","Thanks for your feedback!")}</h2></div>
     <p class="hint">${hasText

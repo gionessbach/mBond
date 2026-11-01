@@ -283,6 +283,24 @@ button.who-box .face{width:84px;height:84px;font-size:50px}
 .gate-row input{flex:1;min-width:0;font:inherit;font-size:18px;color:var(--fg);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:8px 12px;user-select:text;-webkit-user-select:text}
 .gate-msg{font-size:13px;color:var(--muted);min-height:1em}
 
+/* Unterstützung: Pop-up, dezenter Link, Dankeschön */
+.pop-box{gap:14px;padding:22px 18px;max-width:440px}
+.pop-hearts{width:150px;height:auto;align-self:center}
+.perks{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-family:var(--display);font-size:16px}
+.pop-box .tip{border:0;padding:0;background:none}
+.support-link{align-self:center;text-align:center}
+.thanks-line{margin:0;text-align:center;font-family:var(--display);font-size:15px;color:var(--muted)}
+.unlock{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.unlock>span{font-size:12px;color:var(--muted);text-align:center;line-height:1.35}
+.pop-box .tip-head{display:none}
+[hidden]{display:none!important}
+.unlock .big{min-height:52px;font-size:17px}
+.supporter{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:10px 14px;font-family:var(--display);font-size:15px}
+.supporter .chip{flex-direction:row;padding:8px 12px}
+:root.gold{--heart:#E9A800;--heart-soft:#FBEFC4}
+@media (prefers-color-scheme: dark){:root.gold:not([data-theme="light"]){--heart:#FFC629;--heart-soft:#4A4126}}
+:root.gold[data-theme="dark"]{--heart:#FFC629;--heart-soft:#4A4126}
+
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{border-radius:16px;padding:8px 4px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:14px;line-height:1.1}
@@ -1319,10 +1337,13 @@ function album(pid){
   :`<div class="empty"><span class="e">${cur.av}</span><h2>${L("Noch leer","Still empty")}</h2><p class="hint">${L(`Sobald ${esc(cur.name)} eine Frage beantwortet hat, steht hier, was am meisten bedeutet.`,`Once ${esc(cur.name)} has answered a question, you'll see here what matters most.`)}</p></div>`}
   ${nudge(L("Eigenes Bonding erstellen","Create your own bonding"),ownCount()?L(`${ownCount()} eigene schon dabei. Was fehlt noch?`,`${ownCount()} of your own so far. What's missing?`):L("Was macht nur ihr zwei miteinander?","What do only you two do together?"))}
   ${ownCount()?`<button class="tiny" id="mg">${L("Eigene Bondings verwalten","Manage your bondings")}</button>`:""}
-  ${S.rounds>=5?`<div id="gateSlot"><button class="tiny" id="forParents">${L("Für Eltern: mBond unterstützen","For parents: support mBond")}</button></div>`:""}
+  ${S.supporter?`<div class="supporter"><span>💛 ${L("Unterstützer · Dankeschön-Paket aktiv","Supporter · thank-you pack active")}</span>
+      <button class="chip" id="goldBtn" aria-pressed="${!!S.gold}">${L("Goldene Herzen","Golden hearts")}</button></div>`
+    :S.rounds>=5?`<div id="gateSlot"><button class="tiny" id="forParents">${L("Für Eltern: mBond unterstützen","For parents: support mBond")}</button></div>`:""}
   <div class="push"><button class="big primary" id="play">${ARROW}<span>${L("Spielen","Play")}</span></button></div>`);
   wireTip();
   stage.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>album(b.dataset.p));
+  const gb=$("#goldBtn");if(gb)gb.onclick=()=>{S.gold=!S.gold;save();setGold();gb.setAttribute("aria-pressed",!!S.gold)};
   const fp=$("#forParents");if(fp)fp.onclick=()=>parentGate($("#gateSlot"),()=>{$("#gateSlot").innerHTML=tipCard("album");wireTip()});
   wireNudge(()=>album(cur.id));
   if(ownCount())$("#mg").onclick=()=>manage(()=>album(cur.id));
@@ -1388,7 +1409,11 @@ function endGame(){
   const surprise=[...res].sort((a,b)=>Math.abs(b.av-b.gv)-Math.abs(a.av-a.gv))[0];
   const tops=CUR.P.map((p,i)=>[...res].filter(r=>r.ai===i).sort((a,b)=>b.av-a.av)[0]);
   const A=CUR.P[0],B=CUR.P[1];
-  if(!M.nr){S.session=null;save()}
+  if(!M.nr){S.session=null}
+  if(!CUR.counted){CUR.counted=true;S.games=(S.games||0)+1}
+  save();
+  const allowed=tipAllowed(), games=S.games;
+  const popupDue=allowed&&adultsOnly()&&!S.supporter&&games>=TIPCFG.firstPopup&&(!S.lastPopup||games-S.lastPopup>=TIPCFG.popupEvery);
 
   let body="",speakText="";
   LAST={type,tier,close,total:res.length,A,B,head:HEAD[lg][tier]};
@@ -1423,14 +1448,18 @@ function endGame(){
   <div class="say"><h2>${HEAD[lg][tier]}</h2></div>
   <p class="hint">${L(`${close} von ${res.length} Fragen fast gleich eingeschätzt`,`${close} of ${res.length} questions guessed almost the same`)}${surprise&&Math.abs(surprise.av-surprise.gv)>=2?L(` · größte Überraschung: ${esc(nm(surprise))}`,` · biggest surprise: ${esc(nm(surprise))}`):""}</p>
   ${body}
-  ${tier!=="neu"&&!S.tipOff&&(!M.nr||M.host)&&!hasMinor()?tipCard("end"):""}
+  ${allowed?`<div id="tipSlot">${S.supporter
+    ?`<p class="thanks-line">💛 ${L("Danke, dass ihr mBond unterstützt!","Thank you for supporting mBond!")}</p>`
+    :`<button class="tiny support-link" id="supportLink">☕ ${hasMinor()?L("Für Eltern: mBond unterstützen","For parents: support mBond"):L("mBond unterstützen","Support mBond")} · ${L("Dankeschön freischalten","unlock a thank-you")}</button>`}</div>`:""}
   <div class="push">
     <button class="big soft" id="share">${SHARE}<span>${L("Ergebnis teilen","Share result")}</span></button>
     ${!M.nr||M.host?`<button class="big soft" id="more">${PLUS}<span>${L(`${ext} Fragen mehr`,`${ext} more questions`)}</span></button>`:`<p class="hint">${L("Verlängern kann das Gerät, das den Code erstellt hat.","The device that created the code can extend the game.")}</p>`}
     <button class="big primary" id="done">${CHECK}<span>${L("Fertig","Done")}</span></button>
   </div>`);
   if(tier==="hoch")burst(26);
-  $("#share").onclick=shareResult;wireTip();
+  $("#share").onclick=shareResult;
+  const sl=$("#supportLink");if(sl)sl.onclick=()=>{$("#tipSlot").innerHTML=tipCard("end");wireTip()};
+  if(popupDue){S.lastPopup=games;save();setTimeout(()=>tipPopup(games),1600)}
   const more=$("#more");
   if(more)more.onclick=()=>{CUR.total+=ext;if(M.nr){newRound()}else{S.session={P:CUR.P.map(slim),rel:CUR.rel,n:CUR.n,total:CUR.total,res:CUR.res};save();start()}};
   $("#done").onclick=()=>home();
@@ -1439,7 +1468,11 @@ function endGame(){
 /* Kinder und Jugendliche sehen nie eine Bitte um Geld.
    Spielt jemand bis zum Teenager-Alter mit, gibt es am Spielende keinen Trinkgeld-Hinweis.
    Im Album ist er hinter einer Eltern-Sperre (Rechenaufgabe in Worten). */
-const hasMinor=()=>!!CUR&&CUR.P.some(p=>rank(p.stage)<=2);
+const youngest=()=>CUR?Math.min(...CUR.P.map(p=>rank(p.stage))):9;
+const hasMinor=()=>youngest()<=2;
+const tipAllowed=()=>youngest()>=2&&(!M.nr||rank(CUR.P[M.role].stage)>=3); // ab Teenager, aber nie auf dem Gerät eines Teens
+const adultsOnly=()=>youngest()>=3;
+const TIPCFG={firstPopup:3,popupEvery:10};
 const NUMW={de:["null","eins","zwei","drei","vier","fünf","sechs","sieben","acht","neun"],en:["zero","one","two","three","four","five","six","seven","eight","nine"]};
 function parentGate(slot,onPass){
   const a=3+Math.floor(Math.random()*6), b=4+Math.floor(Math.random()*5), w=NUMW[S.lang];
@@ -1507,7 +1540,10 @@ function tipCard(where){
       <button class="via" role="tab" data-via="paypal" aria-selected="${method==="paypal"}"><b>PayPal</b><span>${L("schnell, mit Gebühr","quick, with a fee")}</span></button>
     </div>`:""}
     <div id="tipBody"></div>
-    ${where==="end"?`<button class="tiny" id="tipOff">${L("Nicht mehr anzeigen","Don't show again")}</button>`:""}
+    ${S.supporter?"":`<div class="unlock" id="unlockRow" hidden>
+      <button class="big soft" id="unlockBtn">💛<span>${L("Ich habe unterstützt","I've given a tip")}</span></button>
+      <span>${L("Damit schaltet ihr das Dankeschön frei. Wir können nicht prüfen, ob gezahlt wurde, wir vertrauen euch.","This unlocks your thank-you. We can't check whether you paid, we trust you.")}</span>
+    </div>`}
     <p class="tip-note">${L("Freiwillig. In mBond bleibt alles kostenlos.","Voluntary. Everything in mBond stays free.")}</p>
   </div>`;
 }
@@ -1518,7 +1554,7 @@ function wireTip(){
   const body=()=>{
     const el=$("#tipBody");
     const ppBtn=`<a class="big primary tip-go" data-pp href="${amt?`${TIP.url}/${amt}EUR`:TIP.url}" target="_blank" rel="noopener">${amt?L(`${amt} € über PayPal geben`,`Give ${amt} € via PayPal`):L("Betrag bei PayPal wählen","Choose amount on PayPal")}</a>`;
-    const wirePP=()=>el.querySelectorAll("[data-pp]").forEach(a=>a.onclick=()=>track(via==="bank"?"tip-paypal-after-bank":"tip-paypal"));
+    const wirePP=()=>el.querySelectorAll("[data-pp]").forEach(a=>a.onclick=()=>{track(via==="bank"?"tip-paypal-after-bank":"tip-paypal");showUnlock()});
     if(via==="paypal"||!TIP.bank){el.innerHTML=ppBtn;wirePP();return}
     const b=TIP.bank;
     if(!b.ready){
@@ -1534,7 +1570,7 @@ function wireTip(){
       return;
     }
     el.innerHTML=bankView(b);
-    el.querySelectorAll("[data-copy]").forEach(btn=>btn.onclick=()=>copyText(btn.dataset.copy,btn));
+    el.querySelectorAll("[data-copy]").forEach(btn=>btn.onclick=()=>{copyText(btn.dataset.copy,btn);showUnlock()});
   };
   const bankView=b=>{
     return `<div class="bank">
@@ -1555,7 +1591,8 @@ function wireTip(){
     box.querySelectorAll("[data-via]").forEach(x=>x.setAttribute("aria-selected",x===b));
     body();
   });
-  const off=$("#tipOff");if(off)off.onclick=()=>{S.tipOff=true;save();box.remove()};
+  const showUnlock=()=>{const u=$("#unlockRow");if(u)setTimeout(()=>{u.hidden=false},600)};
+  const ub=$("#unlockBtn");if(ub)ub.onclick=()=>unlockPlus();
   body();
 }
 
@@ -1811,6 +1848,101 @@ function mpReveal(myV,oV){
   setTimeout(()=>{const o=$("#open");if(o)o.click()},500);
 }
 
+/* =========================================================
+   Dankeschön-Paket für Unterstützer: neue Fragen + goldene Herzen
+   [id, emoji, name, "wenn …", icon, meme oben, meme unten]  · Kategorie: s/w/e
+   ========================================================= */
+const PLUS_PACK={
+ "klein:y":[["plus_wunsch","🌠","Wunsch-Zeit","wenn ihr euch gemeinsam etwas wünscht","s"],["plus_pfuetze","🥾","Pfützenspringen","wenn ihr zusammen in Pfützen springt","w"],["plus_dunkel","🌙","Keine Angst","wenn bei Angst im Dunkeln jemand da ist","e"]],
+ "klein:o":[["plus_fruehstueck","🥣","Frühstück servieren","wenn ein Frühstück gebracht wird","s"],["plus_bauchlachen","🤭","Bauchlachen","wenn das Kind vor Lachen nicht mehr kann","w"],["plus_abgeben","🍪","Abgeben","wenn etwas Leckeres freiwillig geteilt wird","e"]],
+ "kind:y":[["plus_brief","💌","Geheimer Brief","wenn ein Brief unterm Kopfkissen liegt","s"],["plus_hoehle","⛺","Kissenhöhle","wenn ihr eine Höhle aus Decken baut","w"],["plus_zutrauen","🗝️","Zutrauen","wenn dir etwas Wichtiges zugetraut wird","e"]],
+ "kind:o":[["plus_neugier","❓","Neugier","wenn nach dem Tag der Eltern gefragt wird","s"],["plus_neuerwitz","📚","Neuer Witz","wenn ein neuer Witz aus der Schule mitgebracht wird","w"],["plus_ehrlich","🙋","Ehrlich sein","wenn ein Fehler ehrlich zugegeben wird","e"]],
+ "teen:y":[["plus_wlan","","WLAN-Passwort","wenn das WLAN-Passwort ohne Diskussion verraten wird","key","Ich: Wie ist das WLAN-Passwort?","Eltern: Sag ich dir. Einfach so.","w"],["plus_ausschlafen","","Ausschlafen","wenn man am Wochenende ausschlafen darf","moon","Samstag, 11 Uhr","Niemand saugt vor meiner Tür","w"],["plus_entscheiden","","Selbst entscheiden","wenn eine große Entscheidung zugetraut wird","compass","Eltern: Entscheide du","Ich: …wirklich?","e"]],
+ "teen:o":[["plus_kochen","","Bekocht werden","wenn das Teen etwas kocht","bowl","Teen kocht Abendessen","Rauchmelder bleibt still","w"],["plus_foto","","Gemeinsames Foto","wenn freiwillig ein Foto zusammen gemacht wird","camera","Teen will ein Foto mit mir","und postet es sogar","s"],["plus_nachfrage","","Nachfragen","wenn nach dem Tag der Eltern gefragt wird","chat","Teen fragt: Wie war dein Tag?","Ich: muss mich kurz setzen","e"]],
+ "jung:y":[["plus_paket","","Paket von zu Hause","wenn ein Paket von zu Hause kommt","gift","s"],["plus_vorbild","","Vorbild sein","wenn jemand sagt: Das habe ich von dir gelernt","star","e"],["plus_tradition","","Familientradition","wenn eine alte Familientradition weiterlebt","house","s"]],
+ "jung:o":[["plus_rezept","","Nach dem Rezept fragen","wenn nach einem Familienrezept gefragt wird","bowl","s"],["plus_beibringen","","Neues zeigen","wenn etwas Neues beigebracht wird","phone","w"],["plus_spaetdank","","Später Dank","wenn für etwas von früher gedankt wird","heart","e"]],
+ "kinder":[["plus_geheimbund","🏴‍☠️","Geheimbund","wenn ihr einen Geheimbund gründet","w"],["plus_mut","💪","Mut machen","wenn jemand sagt: Du schaffst das","e"],["plus_ausleihen","🧸","Lieblingsding leihen","wenn das Lieblingsspielzeug ausgeliehen wird","s"]],
+ "paar":[["plus_kaffeebett","","Kaffee am Bett","wenn der Tag mit einem Kaffee am Bett beginnt","cup","s"],["plus_kuechentanz","","Küchentanz","wenn spontan in der Küche getanzt wird","music","w"],["plus_traeume","","Träume teilen","wenn über gemeinsame Träume gesprochen wird","sun","e"]]
+};
+Object.assign(EN,{
+"klein:y:plus_wunsch":["Wishing time","when you make a wish together"],
+"klein:y:plus_pfuetze":["Puddle jumping","when you jump in puddles together"],
+"klein:y:plus_dunkel":["Not scared","when someone is there when it's scary in the dark"],
+"klein:o:plus_fruehstueck":["Breakfast service","when breakfast is brought over"],
+"klein:o:plus_bauchlachen":["Belly laughs","when the child can't stop laughing"],
+"klein:o:plus_abgeben":["Sharing a treat","when something yummy is shared by choice"],
+"kind:y:plus_brief":["Secret letter","when there's a letter under the pillow"],
+"kind:y:plus_hoehle":["Blanket fort","when you build a fort out of blankets"],
+"kind:y:plus_zutrauen":["Being trusted","when you're trusted with something important"],
+"kind:o:plus_neugier":["Curiosity","when someone asks about the parent's day"],
+"kind:o:plus_neuerwitz":["New joke","when a new joke comes home from school"],
+"kind:o:plus_ehrlich":["Being honest","when a mistake is honestly admitted"],
+"teen:y:plus_wlan":["Wi-Fi password","when the Wi-Fi password is shared without a debate","Me: What's the Wi-Fi password?","Parents: Here you go. Just like that."],
+"teen:y:plus_ausschlafen":["Sleeping in","when you get to sleep in at the weekend","Saturday, 11 am","Nobody hoovering outside my door"],
+"teen:y:plus_entscheiden":["Deciding yourself","when you're trusted with a big decision","Parents: You decide","Me: …really?"],
+"teen:o:plus_kochen":["Being cooked for","when the teen cooks something","Teen cooks dinner","Smoke alarm stays quiet"],
+"teen:o:plus_foto":["Photo together","when a photo together is taken by choice","Teen wants a photo with me","and even posts it"],
+"teen:o:plus_nachfrage":["Asking back","when someone asks about the parent's day","Teen asks: How was your day?","Me: need to sit down"],
+"jung:y:plus_paket":["Parcel from home","when a parcel arrives from home"],
+"jung:y:plus_vorbild":["Role model","when someone says: I learned that from you"],
+"jung:y:plus_tradition":["Family tradition","when an old family tradition lives on"],
+"jung:o:plus_rezept":["Asking for the recipe","when someone asks for a family recipe"],
+"jung:o:plus_beibringen":["Showing something new","when something new gets taught"],
+"jung:o:plus_spaetdank":["Late thanks","when there's thanks for something from long ago"],
+"kinder:plus_geheimbund":["Secret club","when you start a secret club"],
+"kinder:plus_mut":["Encouragement","when someone says: You can do it"],
+"kinder:plus_ausleihen":["Lending a favourite","when a favourite toy is lent out"],
+"paar:plus_kaffeebett":["Coffee in bed","when the day starts with coffee in bed"],
+"paar:plus_kuechentanz":["Kitchen dance","when you dance in the kitchen out of nowhere"],
+"paar:plus_traeume":["Sharing dreams","when you talk about shared dreams"]
+});
+const PLUS_COUNT=Object.values(PLUS_PACK).reduce((n,l)=>n+l.length,0);
+let plusApplied=false;
+function applyPlus(){
+  if(plusApplied||!S.supporter)return;plusApplied=true;
+  const target={"klein:y":SETS.klein,"klein:o":SWAP.klein,"kind:y":SETS.kind,"kind:o":SWAP.kind,"teen:y":SETS.teen,"teen:o":SWAP.teen,"jung:y":SETS.jung,"jung:o":SWAP.jung,"kinder":SYM.kinder,"paar":SYM.paar};
+  for(const [k,list] of Object.entries(PLUS_PACK)){
+    const t=TAGS[k]||(TAGS[k]={w:"",e:""});
+    for(const row of list){
+      const cat=row[row.length-1], data=row.slice(0,-1);
+      target[k].push(data);
+      if(cat==="w")t.w+=" "+data[0];if(cat==="e")t.e+=" "+data[0];
+      DE_NAME[k+":"+data[0]]=data[2];
+    }
+  }
+}
+function setGold(){document.documentElement.classList.toggle("gold",!!(S.supporter&&S.gold))}
+
+function tipPopup(n){
+  if($(".tip-pop"))return;
+  track("tip-popup");
+  const ov=document.createElement("div");ov.className="share-ov tip-pop";ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");
+  ov.innerHTML=`<div class="share-box pop-box">
+    <svg viewBox="0 0 240 120" aria-hidden="true" class="pop-hearts"><path d="${HEART}" transform="translate(40 4) scale(4.6)" fill="var(--accent)"/><path d="${HEART}" transform="translate(100 12) scale(4.6)" fill="var(--heart)" opacity=".92"/></svg>
+    <span class="h2like" style="text-align:center">${L(`Schon ${n} Spiele zusammen!`,`${n} games together already!`)}</span>
+    <p class="hint" style="margin:0">${L("mBond ist kostenlos und ohne Werbung. Wenn es euch gefällt, freuen wir uns über ein kleines Trinkgeld. Als Dankeschön bekommt ihr:","mBond is free and ad-free. If you enjoy it, a small tip means a lot. As a thank-you you get:")}</p>
+    <ul class="perks"><li>✨ ${L(`${PLUS_COUNT} neue Fragen für alle Themenwelten`,`${PLUS_COUNT} new questions for every theme`)}</li><li>💛 ${L("Goldene Herzen","Golden hearts")}</li></ul>
+    ${tipCard("popup")}
+    <button class="big soft" id="later"><span>${L("Vielleicht später","Maybe later")}</span></button>
+  </div>`;
+  document.body.appendChild(ov);wireTip();
+  $("#later").onclick=()=>ov.remove();
+}
+function unlockPlus(){
+  S.supporter=true;S.gold=true;save();applyPlus();setGold();track("tip-unlock");
+  document.querySelectorAll(".tip-pop").forEach(x=>x.remove());
+  const slot=$("#tipSlot")||$("#gateSlot");
+  burst(30);
+  const ov=document.createElement("div");ov.className="share-ov";
+  ov.innerHTML=`<div class="share-box pop-box">
+    <span class="h2like" style="text-align:center">💛 ${L("Danke!","Thank you!")}</span>
+    <p class="hint" style="margin:0">${L(`${PLUS_COUNT} neue Fragen sind ab dem nächsten Spiel dabei, und eure Herzen leuchten jetzt golden. Im Album könnt ihr die goldenen Herzen jederzeit ausschalten.`,`${PLUS_COUNT} new questions join from your next game, and your hearts now shine gold. You can switch golden hearts off in the album at any time.`)}</p>
+    <button class="big primary" id="thx">${CHECK}<span>${L("Weiter","Continue")}</span></button></div>`;
+  document.body.appendChild(ov);$("#thx").onclick=()=>ov.remove();
+  if(slot)slot.innerHTML=`<p class="thanks-line">💛 ${L("Danke, dass ihr mBond unterstützt!","Thank you for supporting mBond!")}</p>`;
+}
+
+applyPlus();setGold();
 home();
 </script>
 <script>

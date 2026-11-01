@@ -15,6 +15,7 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}</style>
 </head>
 <body>
+<script src="peerjs.min.js"></script>
 <title>mBond</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -206,6 +207,29 @@ button.who-box .face{width:84px;height:84px;font-size:50px}
 .emojis button,.icons button{min-width:0;padding:0;font-size:clamp(20px,6.4vw,26px);width:100%}
 .stages .chip{min-width:0;overflow-wrap:anywhere}
 
+/* Sprache, Beispielrunde, Teilen */
+.lang-btn{font-family:var(--display);font-weight:600;font-size:15px}
+.dots{display:flex;justify-content:center;gap:8px}
+.dots span{width:8px;height:8px;border-radius:50%;background:var(--heart-empty)}
+.dots span.on{background:var(--heart);width:22px;border-radius:99px}
+.demo-stage{min-height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.demo-scale span{display:inline-grid}
+.demo-scale span.pop{animation:pop .45s ease both}
+@keyframes pop{0%{transform:scale(.4);opacity:.3}70%{transform:scale(1.15)}100%{transform:none;opacity:1}}
+.demo-bob{animation:bob 1.6s ease-in-out infinite}
+.demo-reveal{width:100%}
+.side-static{border-radius:24px;background:var(--heart-soft);display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 6px}
+.side-static .face{width:64px;height:64px;font-size:38px;border:0;background:var(--bg)}
+.side-static .demo-scale svg{width:22px!important;height:22px!important}
+.share-ov{position:fixed;inset:0;z-index:20;background:rgba(20,20,20,.72);display:grid;place-items:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.share-box{background:var(--surface);border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:12px;max-width:420px;width:100%;max-height:100%;overflow:auto}
+.share-box img{width:100%;border-radius:14px;display:block;user-select:auto;-webkit-user-select:auto;-webkit-touch-callout:default}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;max-width:min(92vw,440px);
+  background:var(--fg);color:var(--bg);border-radius:16px;padding:12px 16px;font-size:15px;line-height:1.4;box-shadow:0 8px 24px rgba(0,0,0,.25);transition:opacity .5s}
+.toast.out{opacity:0}
+
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{border-radius:16px;padding:8px 4px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:14px;line-height:1.1}
@@ -256,6 +280,7 @@ button.who-box .face{width:84px;height:84px;font-size:50px}
 <path d="M12 21s-7.5-4.6-10-9.3C.4 8.6 2.1 4.5 6 4.1c2.3-.2 4.3 1.1 6 3.3 1.7-2.2 3.7-3.5 6-3.3 3.9.4 5.6 4.5 4 7.6C19.5 16.4 12 21 12 21z" transform="translate(262 252) scale(5.6)" fill="#FF6B5B"/></svg></span><span>mBond</span></div>
     <div class="spacer"></div>
     <button class="icon-btn" id="homeBtn" aria-label="Zum Start" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v9H4z"/></svg></button>
+    <button class="icon-btn lang-btn" id="langBtn" aria-label="Switch to English">EN</button>
     <button class="icon-btn" id="soundBtn" aria-label="Vorlesen an oder aus"></button>
   </header>
   <main id="stage" class="screen"></main>
@@ -514,27 +539,193 @@ const WEIGHTS={
   paar:{s:30,w:30,e:40}
 };
 
-/* Themenwelten: Inhalt + Bildsprache */
-const GROUPS={
-  klein:{n:"Kuscheln & Spielen",ico:"🧸",young:true,style:"emoji",asym:true},
-  kind:{n:"Schule & Freunde",ico:"🎒",young:true,style:"emoji",asym:true},
-  teen:{n:"Freiraum & Vertrauen",ico:"🎧",young:false,style:"meme",asym:true},
-  jung:{n:"Eigene Wege",ico:"🧭",young:false,style:"line",asym:true},
-  kinder:{n:"Kinderbande",ico:"🧩",young:true,style:"emoji",asym:false},
-  paar:{n:"Zu zweit",ico:"☕",young:false,style:"line",asym:false}
+/* =========================================================
+   English content, keyed like the German sets (set:id)
+   [name, "when …" clause, meme top, meme bottom]
+   ========================================================= */
+const EN={
+"klein:y:kuscheln":["Cuddles","when you cuddle"],
+"klein:y:vorlesen":["Picture books","when you look at a book together"],
+"klein:y:liebhab":["“Love you”","when someone says: I love you"],
+"klein:y:kitzeln":["Tickling","when you tickle each other"],
+"klein:y:kuss":["Goodnight kiss","when there's a goodnight kiss"],
+"klein:y:huckepack":["Piggyback","when there's a piggyback ride"],
+"klein:y:boden":["Floor play","when you play on the floor together"],
+"klein:y:singen":["Singing","when someone sings a song"],
+"klein:y:trost":["Comfort","when there's comfort after an ouch"],
+"klein:y:seifen":["Bubbles","when you blow bubbles"],
+"klein:y:backen":["Baking","when you bake together"],
+"klein:y:spielplatz":["Playground","when you go to the playground together"],
+"klein:y:anschauen":["Watching","when someone looks closely at what was built"],
+"klein:y:quatsch":["Being silly","when you're silly together"],
+"klein:y:grimassen":["Funny faces","when you pull funny faces"],
+"klein:y:mutig":["Encouragement","when someone says: You can do it!"],
+"klein:y:warten":["Patience","when someone waits patiently until it works on its own"],
+"klein:y:wiedergut":["All good again","when everything is fine again after a telling-off"],
+"klein:o:umarmung":["Hug","when there's a hug"],
+"klein:o:bild":["A drawing","when there's a homemade drawing"],
+"klein:o:aufraeumen":["Tidying up","when someone helps tidy up"],
+"klein:o:kuss":["Little kiss","when there's a kiss just because"],
+"klein:o:lachen":["Laughing together","when you laugh together"],
+"klein:o:anziehen":["Dressing alone","when getting dressed works all alone"],
+"klein:o:liebhab":["“Love you”","when there's an I-love-you"],
+"klein:o:blume":["A flower","when there's a flower from the walk"],
+"klein:o:erzaehlen":["Telling stories","when there's news from kindergarten"],
+"klein:o:tisch":["Setting the table","when someone helps set the table"],
+"klein:o:witz":["Telling a joke","when someone tells a joke"],
+"klein:o:tanzen":["Dancing","when you dance together"],
+"klein:o:verkleiden":["Dressing up","when someone dresses up funny"],
+"kind:y:kuscheln":["Cuddles","when you cuddle"],
+"kind:y:vorlesen":["Story time","when someone reads aloud"],
+"kind:y:brettspiel":["Board game","when you play a game together"],
+"kind:y:lob":["Praise","when there's praise"],
+"kind:y:zuhoeren":["Listening","when someone listens really closely"],
+"kind:y:ausflug":["Day trip","when you go on a trip"],
+"kind:y:abklatschen":["High five","when you high-five"],
+"kind:y:essen":["Favourite food","when there's your favourite food"],
+"kind:y:ueberraschung":["Surprise","when there's a little surprise"],
+"kind:y:geheimnis":["A secret","when you share a secret"],
+"kind:y:zettel":["Lunchbox note","when there's a sweet note in the lunchbox"],
+"kind:y:hausaufgaben":["Homework help","when there's help with homework"],
+"kind:y:hobby":["Cheering on","when someone watches your hobby"],
+"kind:y:kuss":["Bedtime ritual","when there's a bedtime ritual"],
+"kind:y:kissen":["Pillow fight","when there's a pillow fight"],
+"kind:y:flachwitz":["Dad jokes","when someone tells terrible jokes"],
+"kind:y:fehler":["Forgiving mistakes","when a mistake is forgiven"],
+"kind:y:sorgen":["Being taken seriously","when worries are taken seriously"],
+"kind:o:umarmung":["Hug","when there's a hug"],
+"kind:o:bild":["A drawing","when there's a homemade drawing"],
+"kind:o:danke":["Thank you","when someone says thank you"],
+"kind:o:schule":["School news","when there's news from school"],
+"kind:o:ueberraschung":["Homemade surprise","when there's a homemade surprise"],
+"kind:o:geschwister":["Kind to siblings","when siblings are kind to each other"],
+"kind:o:zimmer":["Tidy room","when the room is tidied without reminders"],
+"kind:o:vorlesen":["Reading aloud","when the child reads something aloud"],
+"kind:o:tisch":["Setting the table","when someone helps set the table"],
+"kind:o:lachen":["Laughing together","when you laugh together"],
+"kind:o:streich":["A little prank","when there's a harmless prank"],
+"kind:o:witz":["Telling a joke","when someone tells a joke"],
+"kind:o:show":["A little show","when there's a little performance"],
+"teen:y:umarmung":["Hug","when there's a hug","I'm too old for hugs","Okay. Maybe one."],
+"teen:y:fahrdienst":["Ride service","when there's a ride","Parent taxi","Runs at 11 pm too. No lecture."],
+"teen:y:mitspielen":["Playing along","when someone plays your favourite game","Parents join the game","…and they're actually not that bad"],
+"teen:y:vertrauen":["Trust","when there's trust instead of control","No 20 control questions","Just: Have fun!"],
+"teen:y:tuer":["Privacy","when the closed bedroom door is respected","Door is shut","and nobody knocks five times"],
+"teen:y:nachricht":["Nice message","when a nice message arrives just because","Message from parents","No “Where are you?” Just a heart."],
+"teen:y:streit":["After a fight","when someone takes the first step after a fight","After the fight","someone else makes the first move"],
+"teen:y:muehe":["Seeing the effort","when the effort is praised, not just the grade","Grade: meh","Parents: I saw how hard you studied"],
+"teen:y:serie":["Series together","when you watch a series together","“Just one more episode”","says the parent this time"],
+"teen:y:meinung":["Having a say","when your opinion really counts","Parents ask for my opinion","and actually listen to it"],
+"teen:y:zuhoeren":["Listening, no advice","when someone listens without giving advice right away","I tell them something","and get zero tips"],
+"teen:y:ruhe":["Space","when you're left alone when you need it","I need some space","and I get it. Just like that."],
+"teen:y:essen":["Favourite food","when there's your favourite food","Bad day","Favourite dinner at home"],
+"teen:y:musik":["Sharing music","when someone is curious about your music","Parents ask for my playlist","and actually listen"],
+"teen:y:memes":["Sending memes","when a good meme arrives","Parents send a meme","…and it's actually funny"],
+"teen:y:peinlich":["Not embarrassing","when nothing embarrassing happens in front of friends","Parents meet my friends","and say nothing embarrassing"],
+"teen:y:snack":["Favourite snack","when your favourite snack is just there","Opened the cupboard","favourite snack is just there"],
+"teen:o:erzaehlen":["Talking about the day","when there's news about the day, unprompted","“How was school?”","Kid says more than “fine”"],
+"teen:o:danke":["Thank you","when someone says thank you","A simple thank you","Parents: *needs a moment*"],
+"teen:o:melden":["Checking in","when a message says everything's okay","“Arrived safely”","Two words that save parents"],
+"teen:o:hilfe":["Helping unasked","when someone helps without being asked","Dishwasher emptied","Without anyone asking"],
+"teen:o:zeit":["Time by choice","when time together is spent by choice","Kid wants to do something with me","Voluntarily??"],
+"teen:o:umarmung":["Hug","when there's a hug","Hug from a teenager","Rarer than Wi-Fi on a train"],
+"teen:o:entschuldigung":["Apology","when an apology comes after a fight","After the fight","comes a quiet “sorry”"],
+"teen:o:musik":["Sharing music","when your favourite music is shared","Kid shows me their music","Me: pretending to be cool"],
+"teen:o:rat":["Asking for advice","when someone asks for advice","Kid asks me for advice","Me: feeling like a wise wizard"],
+"teen:o:technik":["Tech support","when the phone gets explained without eye-rolling","Kid explains my phone","without a single eye-roll"],
+"teen:o:lachen":["Making laugh","when a joke gets a laugh","Kid laughs at my joke","Really? Not a pity laugh?"],
+"teen:o:mitkommen":["Coming along","when someone joins the family trip by choice","Family trip","Teen comes along. No negotiations."],
+"jung:y:anruf":["Calling just because","when someone gets in touch just because"],
+"jung:y:stolz":["“I'm proud”","when someone says: I'm proud of you"],
+"jung:y:rat":["Advice, no pressure","when there's advice but no pressure"],
+"jung:y:praktisch":["Practical help","when someone helps with moving or paperwork"],
+"jung:y:mitnehmen":["Food to go","when there's food to take home"],
+"jung:y:respekt":["Respect","when your own decisions are respected"],
+"jung:y:kaffee":["Time for two","when you have a coffee together"],
+"jung:y:fotos":["Old photos","when you look at old photos together"],
+"jung:y:geld":["Financial help","when there's financial support"],
+"jung:y:alltag":["Interest","when someone asks about everyday life"],
+"jung:y:umarmung":["Hug","when there's a hug"],
+"jung:y:entschuldigung":["Apology","when someone honestly apologises"],
+"jung:y:besuch":["Visiting home","when a visit home is waiting"],
+"jung:y:geschichten":["Old stories","when you laugh about old stories"],
+"jung:y:insider":["Inside joke","when you share an inside joke"],
+"jung:y:spiel":["Game night","when you have a game night"],
+"jung:o:anruf":["Calling just because","when your child gets in touch just because"],
+"jung:o:besuch":["A visit","when a visit is announced"],
+"jung:o:rat":["Asking for advice","when someone asks for advice"],
+"jung:o:danke":["Thank you","when someone says thank you"],
+"jung:o:erfolg":["Sharing success","when successes are told at home first"],
+"jung:o:hilfe":["Lending a hand","when someone helps in the house or garden"],
+"jung:o:zeit":["Time together","when you do something together"],
+"jung:o:umarmung":["Hug","when there's a hug"],
+"jung:o:fotos":["Sharing life","when photos from everyday life are sent"],
+"jung:o:lachen":["Making laugh","when someone makes you laugh"],
+"jung:o:spiel":["Game night","when you have a game night together"],
+"jung:o:sorgen":["Sharing worries","when worries are shared too"],
+"kinder:spielen":["Playing together","when you play together"],
+"kinder:teilen":["Sharing","when something is shared"],
+"kinder:trost":["Comfort","when there's comfort"],
+"kinder:geheimnis":["A secret","when you share a secret"],
+"kinder:lachen":["Laughing","when you laugh together"],
+"kinder:bauen":["Building","when you build something together"],
+"kinder:umarmen":["Hugging","when there's a hug"],
+"kinder:helfen":["Helping","when someone helps"],
+"kinder:verstecken":["Hide and seek","when you play hide and seek"],
+"kinder:malen":["Drawing","when you draw together"],
+"kinder:aufpassen":["Looking out","when someone makes sure nothing happens"],
+"kinder:quatsch":["Being silly","when you're silly together"],
+"kinder:vertragen":["Making up","when you make up after a fight"],
+"paar:kompliment":["Compliment","when there's an honest compliment"],
+"paar:zeit":["Time for two","when you have undisturbed time together"],
+"paar:umarmung":["Hug","when there's a long hug"],
+"paar:zuhoeren":["Listening","when someone really listens"],
+"paar:alltag":["Everyday help","when a chore is simply taken off your hands"],
+"paar:ueberraschung":["Little surprise","when there's a little surprise"],
+"paar:nachricht":["Message in between","when a sweet message arrives in between"],
+"paar:lachen":["Laughing together","when you laugh together"],
+"paar:rueckhalt":["Backing","when there's support with a hard decision"],
+"paar:ausflug":["Spontaneous trip","when you do something spontaneously"],
+"paar:ruhe":["Some peace","when someone lets you have some peace"],
+"paar:entschuldigung":["Apology","when someone honestly apologises"],
+"paar:kochen":["Being cooked for","when someone cooks"],
+"paar:stolz":["Showing pride","when someone says: I'm proud of you"],
+"paar:insider":["Inside joke","when you share an inside joke"],
+"paar:spiel":["Game night","when you have a game night"],
+"paar:albern":["Being silly","when you're silly together"]
 };
-const STAGES=[["kita","🧸","Kita-Alter"],["schule","🎒","Grundschule"],["teen","🎧","Teenager"],["jung","🎓","Junge Erwachsene"],["erwachsen","☕","Erwachsen"],["senior","🌿","Großeltern-Alter"]];
+
+/* =========================================================
+   Themenwelten, Personen, Beziehungen (zweisprachig)
+   ========================================================= */
+const GROUPS={
+  klein:{n:["Kuscheln & Spielen","Cuddles & Play"],ico:"🧸",young:true,style:"emoji",asym:true},
+  kind:{n:["Schule & Freunde","School & Friends"],ico:"🎒",young:true,style:"emoji",asym:true},
+  teen:{n:["Freiraum & Vertrauen","Space & Trust"],ico:"🎧",young:false,style:"meme",asym:true},
+  jung:{n:["Eigene Wege","Own Paths"],ico:"🧭",young:false,style:"line",asym:true},
+  kinder:{n:["Kinderbande","Kid Crew"],ico:"🧩",young:true,style:"emoji",asym:false},
+  paar:{n:["Zu zweit","Just the Two of You"],ico:"☕",young:false,style:"line",asym:false}
+};
+const STAGES=[["kita","🧸","Kita-Alter","Toddler"],["schule","🎒","Grundschule","Primary school"],["teen","🎧","Teenager","Teenager"],["jung","🎓","Junge Erwachsene","Young adult"],["erwachsen","☕","Erwachsen","Adult"],["senior","🌿","Großeltern-Alter","Grandparent age"]];
 const rank=s=>STAGES.findIndex(x=>x[0]===s);
 const stageOf=s=>STAGES.find(x=>x[0]===s)||STAGES[4];
-const RELS=[["eltern","Eltern & Kind","👨‍👧",true],["grosseltern","Großeltern & Enkel","👵",true],["partner","Partner","💑",false],["geschwister","Geschwister","👫",false],["freunde","Freunde","🤝",false]];
+const stageName=s=>{const x=stageOf(s);return EN_ON()?x[3]:x[2]};
+const RELS=[["eltern","Eltern & Kind","Parent & Child","👨‍👧",true],["grosseltern","Großeltern & Enkel","Grandparent & Grandchild","👵",true],["partner","Partner","Partners","💑",false],["geschwister","Geschwister","Siblings","👫",false],["freunde","Freunde","Friends","🤝",false]];
 const FACES=["👩","👨","🧔","👱‍♀️","👩‍🦱","👨‍🦱","👵","👴","👧","👦","🧒","👶","🧑","👩‍🦰","🧑‍🦱","🐻"];
-const WORDS={young:["Ein kleines bisschen","Ein bisschen","Mittel","Doll","Ganz, ganz doll"],old:["Kaum","Ein wenig","Mittel","Deutlich","Total"]};
+const WORDS={de:{young:["Ein kleines bisschen","Ein bisschen","Mittel","Doll","Ganz, ganz doll"],old:["Kaum","Ein wenig","Mittel","Deutlich","Total"]},
+             en:{young:["A tiny bit","A little","Medium","A lot","So, so much"],old:["Barely","A little","Medium","Clearly","Totally"]}};
 const EMOJIS=["❤️","🤗","🫶","🤝","✋","🙌","🤫","😂","🎶","📖","🎲","🧩","⚽","🚲","🏕️","🌳","🐶","🥐","🍦","🍕","☕","🛁","🛏️","🌙","☀️","🚗","🎨","✉️","🎁","⭐","🖍️","🧸"];
 const KEY="mbond.v4";
 
-let S={sound:true,people:[],rel:{},lastPair:null,album:{},custom:{},recent:{},rounds:0,introSeen:false};
+let S={sound:true,people:[],rel:{},lastPair:null,album:{},custom:{},recent:{},rounds:0,introSeen:false,demoSeen:false,lang:null};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)S=Object.assign(S,s)}catch(e){}
+if(!S.lang)S.lang=(navigator.language||"de").toLowerCase().startsWith("de")?"de":"en";
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+/* Sprache: L("deutsch","english") */
+const EN_ON=()=>S.lang==="en";
+const L=(de,en)=>EN_ON()?en:de;
+const gName=g=>GROUPS[g].n[EN_ON()?1:0];
 
 const $=s=>document.querySelector(s), stage=$("#stage");
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -544,29 +735,42 @@ const pairKey=(a,b)=>[a,b].sort().join("|");
 
 /* ---------- Aktuelles Paar ---------- */
 let CUR=null, R={};
+function labels(P,rel,younger){
+  P.forEach((p,i)=>{
+    if(!p.anon){p.nom=p.dat=p.name;return}
+    let x;
+    if(rel==="eltern")x=i===younger?L(["dein Kind","deinem Kind"],["your child","your child"]):L(["Mama oder Papa","Mama oder Papa"],["Mum or Dad","Mum or Dad"]);
+    else if(rel==="grosseltern")x=i===younger?L(["dein Enkelkind","deinem Enkelkind"],["your grandchild","your grandchild"]):L(["Oma oder Opa","Oma oder Opa"],["Grandma or Grandpa","Grandma or Grandpa"]);
+    else x=L(["dein Gegenüber","deinem Gegenüber"],["the other person","the other person"]);
+    p.nom=x[0];p.dat=x[1];
+  });
+}
 function makeCtx(A,B,rel){
-  const asym=RELS.find(r=>r[0]===rel)[3];
+  const asym=RELS.find(r=>r[0]===rel)[4];
   const P=[A,B];
   let older=0,younger=1;
-  if(asym){if(rank(A.stage)<rank(B.stage)){older=1;younger=0}}
+  if(asym&&rank(A.stage)<rank(B.stage)){older=1;younger=0}
   let g;
-  if(asym){g={kita:"klein",schule:"kind",teen:"teen"}[P[younger].stage]||"jung"}
+  if(asym)g={kita:"klein",schule:"kind",teen:"teen"}[P[younger].stage]||"jung";
   else g=Math.min(rank(A.stage),rank(B.stage))<=1?"kinder":"paar";
-  const label=(i)=>{
-    const p=P[i];
-    if(!p.anon)return {nom:p.name,dat:p.name};
-    if(rel==="eltern")return i===younger?{nom:"dein Kind",dat:"deinem Kind"}:{nom:"Mama oder Papa",dat:"Mama oder Papa"};
-    if(rel==="grosseltern")return i===younger?{nom:"dein Enkelkind",dat:"deinem Enkelkind"}:{nom:"Oma oder Opa",dat:"Oma oder Opa"};
-    return {nom:"dein Gegenüber",dat:"deinem Gegenüber"};
-  };
-  P.forEach((p,i)=>Object.assign(p,label(i)));
+  labels(P,rel,younger);
   return {P,rel,asym,older,younger,g,n:0,played:{},key:(A.id&&B.id)?pairKey(A.id,B.id):null};
 }
 const group=()=>CUR?CUR.g:"kind";
 const style=()=>GROUPS[group()].style;
-const words=()=>GROUPS[group()].young?WORDS.young:WORDS.old;
+const words=()=>WORDS[S.lang][GROUPS[group()].young?"young":"old"];
 const isKid=p=>rank(p.stage)<=1;
 
+/* Inhalt in der aktuellen Sprache (eigene Bondings bleiben, wie sie geschrieben wurden) */
+const DE_NAME={};
+[["klein:y",SETS.klein],["klein:o",SWAP.klein],["kind:y",SETS.kind],["kind:o",SWAP.kind],["teen:y",SETS.teen],["teen:o",SWAP.teen],["jung:y",SETS.jung],["jung:o",SWAP.jung],["kinder",SYM.kinder],["paar",SYM.paar]]
+  .forEach(([k,l])=>l.forEach(a=>DE_NAME[k+":"+a[0]]=a[2]));
+const nameFor=(id,fallback)=>EN_ON()?(EN[id]?EN[id][0]:fallback):(DE_NAME[id]||fallback);
+function loc(g){
+  if(!g||g.custom||!EN_ON())return g;
+  const e=EN[g.id];if(!e)return g;
+  return {...g,n:e[0],p:e[1],mt:e[2]||g.mt,mb:e[3]||g.mb};
+}
 function pool(ai){
   const g=CUR.g;
   if(!CUR.asym)return [...SYM[g].map(a=>toObj(g,a)),...(S.custom[g]||[])];
@@ -577,9 +781,14 @@ const toObj=(pre,[id,e,n,p,i,mt,mb])=>({id:pre+":"+id,e,n,p,i,mt,mb,c:tagOf(pre,
 
 function Q(role,ai,p){
   const ans=CUR.P[ai], young=GROUPS[CUR.g].young, love=CUR.asym&&ai===CUR.younger;
+  if(EN_ON()){
+    if(role==="guess")return young?(love?`What do you think: How loved does ${ans.nom} feel ${p}?`:`What do you think: How happy is ${ans.nom} ${p}?`):`What do you think: How much does it mean to ${ans.nom} ${p}?`;
+    return young?(love?`How loved do you feel ${p}?`:`How happy are you ${p}?`):`How much does it mean to you ${p}?`;
+  }
   if(role==="guess")return young?(love?`Was glaubst du: Wie doll fühlt sich ${ans.nom} lieb gehabt, ${p}?`:`Was glaubst du: Wie doll freut sich ${ans.nom}, ${p}?`):`Was glaubst du: Wie viel bedeutet es ${ans.dat}, ${p}?`;
   return young?(love?`Wie doll fühlst du dich lieb gehabt, ${p}?`:`Wie doll freust du dich, ${p}?`):`Wie viel bedeutet es dir, ${p}?`;
 }
+const stripGuess=q=>q.replace("Was glaubst du: ","").replace("What do you think: ","");
 
 /* Bild einer Geste in der Bildsprache der Themenwelt */
 function art(g,size,st=style()){
@@ -589,6 +798,7 @@ function art(g,size,st=style()){
 }
 const thumb=g=>g.i&&!g.e?`<span class="ic-sm">${iconSvg(g.i,1.6)}</span>`:`<span class="e">${esc(g.e||"❤️")}</span>`;
 
+/* ---------- UI-Icons ---------- */
 const HEART="M12 21s-7.5-4.6-10-9.3C.4 8.6 2.1 4.5 6 4.1c2.3-.2 4.3 1.1 6 3.3 1.7-2.2 3.7-3.5 6-3.3 3.9.4 5.6 4.5 4 7.6C19.5 16.4 12 21 12 21z";
 const heart=(size,cls="")=>`<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="${cls}" aria-hidden="true"><path class="hp" d="${HEART}"/></svg>`;
 const ic=d=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
@@ -600,20 +810,77 @@ const CHECK=ic('<path d="M5 12.5l4.5 4.5L19 7.5"/>');
 const DICE=ic('<rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="15" r="1.2" fill="currentColor"/><circle cx="15" cy="9" r="1.2" fill="currentColor"/><circle cx="9" cy="15" r="1.2" fill="currentColor"/>');
 const BOOK=ic('<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5zM4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/>');
 const PLUS=ic('<path d="M12 5v14M5 12h14"/>');
+const SHARE=ic('<path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>');
 
-/* ---------- Sprache ---------- */
-let voice=null;
-function pickVoice(){const v=speechSynthesis.getVoices().filter(x=>x.lang&&x.lang.startsWith("de"));voice=v.find(x=>/Anna|Helena|Petra|Google/i.test(x.name))||v[0]||null}
-if("speechSynthesis" in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
-function speak(t){if(!S.sound||!("speechSynthesis" in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="de-DE";u.rate=.95;u.pitch=1.1;if(voice)u.voice=voice;speechSynthesis.speak(u)}
-const sayBtn=t=>`<button class="icon-btn" data-say="${esc(t)}" aria-label="Vorlesen">${SPK_SMALL}</button>`;
-document.addEventListener("click",e=>{const b=e.target.closest("[data-say]");if(b)speak(b.dataset.say)});
-function setSound(){$("#soundBtn").innerHTML=S.sound?SPK_ON:SPK_OFF}
-$("#soundBtn").onclick=()=>{S.sound=!S.sound;save();setSound();if(S.sound)speak("Vorlesen ist an.");else if(window.speechSynthesis)speechSynthesis.cancel()};
+/* ---------- Sprache & Vorlesen ---------- */
+/* Vorlesen über die Sprachausgabe des Geräts.
+   Stolpersteine, die hier abgefangen werden:
+   - iOS/Android geben erst Ton aus, nachdem eine Ausgabe direkt aus einer Berührung kam → "Entsperren" beim ersten Tippen
+   - Chrome verschluckt ein speak() direkt nach cancel() → kurze Pause dazwischen
+   - Chrome bricht ab, wenn die Ausgabe vom Speicher weggeräumt wird → Referenz behalten
+   - Manche eingebetteten Ansichten (z. B. In-App-Browser unter Android) haben gar keine Sprachausgabe → erkennen und Hinweis zeigen */
+let TTS_OK=("speechSynthesis" in window)&&typeof SpeechSynthesisUtterance!=="undefined";
+let voice=null, ttsUnlocked=false, ttsWarned=false, speakTimer=0;
+const ttsKeep=[];
+function pickVoice(){
+  if(!TTS_OK)return;
+  try{
+    const pre=EN_ON()?"en":"de";
+    const v=speechSynthesis.getVoices().filter(x=>x.lang&&x.lang.toLowerCase().replace("_","-").startsWith(pre));
+    voice=v.find(x=>x.localService&&/Anna|Helena|Petra|Samantha|Karen|Daniel/i.test(x.name))||v.find(x=>x.localService)||v[0]||null;
+  }catch(e){voice=null}
+}
+if(TTS_OK){pickVoice();try{speechSynthesis.addEventListener("voiceschanged",pickVoice)}catch(e){speechSynthesis.onvoiceschanged=pickVoice}}
+function unlockTTS(){
+  if(ttsUnlocked||!TTS_OK)return;ttsUnlocked=true;
+  try{const u=new SpeechSynthesisUtterance(" ");u.volume=0;u.lang=EN_ON()?"en-GB":"de-DE";speechSynthesis.speak(u)}catch(e){}
+}
+document.addEventListener("pointerdown",unlockTTS,{capture:true});
+document.addEventListener("touchend",unlockTTS,{capture:true});
+function toast(msg){
+  const t=document.createElement("div");t.className="toast";t.textContent=msg;document.body.appendChild(t);
+  setTimeout(()=>t.classList.add("out"),5200);setTimeout(()=>t.remove(),5800);
+}
+function ttsMissing(){
+  if(ttsWarned)return;ttsWarned=true;
+  toast(L("Vorlesen funktioniert in dieser Ansicht nicht. Öffne mBond in Chrome oder Safari und prüfe die Medienlautstärke.","Reading aloud doesn't work in this view. Open mBond in Chrome or Safari and check the media volume."));
+}
+function speak(t,fromTap){
+  if(!S.sound||!t)return;
+  if(!TTS_OK){if(fromTap)ttsMissing();return}
+  try{
+    if(speechSynthesis.speaking||speechSynthesis.pending)speechSynthesis.cancel();
+    clearTimeout(speakTimer);
+    speakTimer=setTimeout(()=>{
+      const u=new SpeechSynthesisUtterance(t);
+      u.lang=voice?voice.lang:(EN_ON()?"en-GB":"de-DE");u.rate=.95;u.pitch=1.1;if(voice)u.voice=voice;
+      let started=false;u.onstart=()=>{started=true};
+      u.onerror=e=>{if(e&&e.error==="not-allowed")ttsUnlocked=false};
+      ttsKeep.push(u);if(ttsKeep.length>4)ttsKeep.shift();
+      try{speechSynthesis.resume()}catch(e){}
+      speechSynthesis.speak(u);
+      // Keine Stimme und kein Start nach 2 s: Sprachausgabe fehlt hier offenbar
+      setTimeout(()=>{if(!started&&!speechSynthesis.speaking&&!speechSynthesis.getVoices().length){TTS_OK=false;setHeader();if(fromTap)ttsMissing()}},2000);
+    },80);
+  }catch(e){}
+}
+const sayBtn=t=>`<button class="icon-btn" data-say="${esc(t)}" aria-label="${L("Vorlesen","Read aloud")}">${SPK_SMALL}</button>`;
+document.addEventListener("click",e=>{const b=e.target.closest("[data-say]");if(b){unlockTTS();speak(b.dataset.say,true)}});
+function setHeader(){
+  $("#soundBtn").innerHTML=S.sound&&TTS_OK?SPK_ON:SPK_OFF;
+  $("#soundBtn").setAttribute("aria-label",TTS_OK?L("Vorlesen an oder aus","Read aloud on or off"):L("Vorlesen nicht verfügbar","Reading aloud not available"));
+  $("#homeBtn").setAttribute("aria-label",L("Zum Start","Home"));
+  const lb=$("#langBtn");lb.textContent=EN_ON()?"DE":"EN";lb.setAttribute("aria-label",L("Switch to English","Auf Deutsch wechseln"));
+  document.documentElement.lang=S.lang;
+}
+$("#soundBtn").onclick=()=>{
+  if(!TTS_OK){ttsWarned=false;ttsMissing();return}
+  S.sound=!S.sound;save();setHeader();
+  if(S.sound){unlockTTS();speak(L("Vorlesen ist an.","Reading aloud is on."),true)}else speechSynthesis.cancel();
+};
 $("#homeBtn").onclick=()=>home();
-setSound();
-
-
+$("#langBtn").onclick=()=>{S.lang=EN_ON()?"de":"en";save();pickVoice();setHeader();if(CUR){labels(CUR.P,CUR.rel,CUR.younger)}home()};
+setHeader();
 
 function show(html,isHome){stage.classList.remove("screen");void stage.offsetWidth;stage.classList.add("screen");stage.innerHTML=html;$("#homeBtn").hidden=!!isHome;window.scrollTo(0,0)}
 const enable=el=>{el.disabled=false;el.style.opacity=1};
@@ -628,17 +895,63 @@ function home(){
   <div class="hero">
     <svg viewBox="0 0 240 150" aria-hidden="true"><path d="${HEART}" transform="translate(18 12) scale(5.4)" fill="var(--accent)"/><path d="${HEART}" transform="translate(92 22) scale(5.4)" fill="var(--heart)" opacity=".92"/></svg>
     <h1>mBond</h1>
-    <p class="hint">Kommt meine Liebe so an, wie ich sie meine?</p>
+    <p class="hint">${L("Kommt meine Liebe so an, wie ich sie meine?","Does my love land the way I mean it?")}</p>
+    <button class="tiny" id="how">${L("So geht's","How it works")}</button>
   </div>
   <div class="push">
-    ${nudge(own?`${own} eigene${own>1?"":"s"} Bonding${own>1?"s":""} · noch eins?`:"Eigenes Bonding erstellen","Eure Rituale bringen die größten Aha-Momente.")}
-    <button class="big primary" id="play">${ARROW}<span>Los geht's</span></button>
-    <div class="row"><button class="big soft" id="album">${BOOK}<span>Album</span></button><button class="big soft" id="two"><span>📱📱</span><span>Zwei Geräte</span></button></div>
+    ${nudge(own?L(`${own} eigene${own>1?"":"s"} Bonding${own>1?"s":""} · noch eins?`,`${own} own bonding${own>1?"s":""} · add another?`):L("Eigenes Bonding erstellen","Create your own bonding"),L("Eure Rituale bringen die größten Aha-Momente.","Your own rituals bring the biggest aha moments."))}
+    <button class="big primary" id="play">${ARROW}<span>${L("Los geht's","Let's play")}</span></button>
+    <div class="row"><button class="big soft" id="album">${BOOK}<span>${L("Album","Album")}</span></button><button class="big soft" id="two"><span>📱📱</span><span>${L("Zwei Geräte","Two devices")}</span></button></div>
   </div>`,true);
   wireNudge(home);
-  $("#play").onclick=()=>setup(()=>S.introSeen?start():intro());
+  const go=()=>setup(()=>S.introSeen?start():intro());
+  $("#play").onclick=()=>S.demoSeen?go():demo(go);
+  $("#how").onclick=()=>demo(home);
   $("#album").onclick=()=>album();
   $("#two").onclick=twoStart;
+}
+
+/* ---------- Beispielrunde ---------- */
+function demo(after){
+  S.demoSeen=true;save();
+  const M1="👩",K1="👧", nameK=L("Lena","Lena");
+  const hearts=(v,anim)=>`<div class="scale demo-scale">${[1,2,3,4,5].map(i=>`<span class="${i<=v?"on":""} ${anim?"pop":""}" style="animation-delay:${i*.15}s">${heart(26+i*8)}</span>`).join("")}</div>`;
+  const steps=[
+    {t:L("Zwei Menschen, ein Handy","Two people, one phone"),
+     d:L("Ihr sucht aus, wer mitspielt und wie ihr zusammengehört. Danach passen Fragen und Bilder zu euch.","Pick who's playing and how you belong together. Questions and pictures then fit you."),
+     v:`<div class="duo"><div class="face">${M1}</div><div class="face">${K1}</div></div>`},
+    {t:L("Die erste Person schätzt","The first person guesses"),
+     d:L(`Mama schätzt verdeckt: Wie doll fühlt sich ${nameK} lieb gehabt, wenn ihr kuschelt?`,`Mum guesses in secret: How loved does ${nameK} feel when you cuddle?`),
+     v:`<div class="duo"><div class="face">${M1}</div><div class="gesture-big">🤗</div></div>${hearts(3,true)}`},
+    {t:L("Handy weitergeben","Pass the phone"),
+     d:L("Die Antwort bleibt geheim. Jetzt ist die andere Person dran.","The answer stays secret. Now it's the other person's turn."),
+     v:`<div class="duo"><div class="face demo-bob">${K1}</div></div>`},
+    {t:L("Die zweite Person antwortet","The second person answers"),
+     d:L("Lena sagt ehrlich, wie es sich für sie anfühlt. Für Kinder wird alles vorgelesen.","Lena says honestly how it feels. Everything is read aloud for children."),
+     v:`<div class="duo"><div class="face">${K1}</div><div class="gesture-big">🤗</div></div>${hearts(5,true)}`},
+    {t:L("Aufdecken!","Reveal!"),
+     d:L("Mama dachte 3 Herzen, Lena fühlt 5. Oh, das bedeutet ihr noch mehr als gedacht! Genau diese Momente sind das Ziel.","Mum thought 3 hearts, Lena feels 5. It means even more to her than expected! Those moments are the goal."),
+     v:`<div class="reveal demo-reveal"><div class="side-static"><div class="face">${M1}</div>${hearts(3)}</div><div class="side-static"><div class="face">${K1}</div>${hearts(5)}</div></div>`},
+    {t:L("Am Ende","At the end"),
+     d:L("Nach 8 bis 12 Fragen gibt es euer Ergebnis: einen Spruch für Kinder, ein Meme für Teens oder eine Idee für gemeinsame Zeit. Ihr könnt es teilen.","After 8 to 12 questions you get your result: a saying for kids, a meme for teens or an idea for time together. You can share it."),
+     v:`<div class="quote" style="font-size:19px">${L("Ihr zwei seid ein echtes Herz-Team!","You two are a real heart team!")}</div>`}
+  ];
+  let i=0;
+  const draw=()=>{
+    const s=steps[i], last=i===steps.length-1;
+    show(`
+    <div class="dots" aria-hidden="true">${steps.map((_,k)=>`<span class="${k===i?"on":""}"></span>`).join("")}</div>
+    <div class="demo-stage">${s.v}</div>
+    <div class="say"><h2>${s.t}</h2>${sayBtn(s.t+". "+s.d)}</div>
+    <p class="hint">${esc(s.d)}</p>
+    <div class="push">
+      <button class="big primary" id="nx">${last?CHECK:ARROW}<span>${last?L("Selbst ausprobieren","Try it yourself"):L("Weiter","Next")}</span></button>
+      ${last?"":`<button class="tiny" id="sk">${L("Überspringen","Skip")}</button>`}
+    </div>`);
+    $("#nx").onclick=()=>{if(last)after();else{i++;draw()}};
+    const sk=$("#sk");if(sk)sk.onclick=after;
+  };
+  draw();
 }
 
 /* ---------- Wer spielt? ---------- */
@@ -647,10 +960,10 @@ function setup(next){
   if(ss&&ss.n<ss.total){
     const [a,b]=ss.P;
     show(`
-    <div class="say"><h2>Weiterspielen?</h2></div>
+    <div class="say"><h2>${L("Weiterspielen?","Continue?")}</h2></div>
     <button class="pair-card" id="resume"><span class="duo"><span class="face">${a.av}</span><span class="face">${b.av}</span></span>
-      <b>${esc(a.name||"Anonym")} & ${esc(b.name||"Anonym")}</b><span class="hint">Frage ${ss.n} von ${ss.total} · Spiel fortsetzen</span></button>
-    <div class="push"><button class="big soft" id="fresh"><span>Neues Spiel</span></button></div>`);
+      <b>${esc(a.name||L("Anonym","Anonymous"))} & ${esc(b.name||L("Anonym","Anonymous"))}</b><span class="hint">${L(`Frage ${ss.n} von ${ss.total} · Spiel fortsetzen`,`Question ${ss.n} of ${ss.total} · continue game`)}</span></button>
+    <div class="push"><button class="big soft" id="fresh"><span>${L("Neues Spiel","New game")}</span></button></div>`);
     $("#resume").onclick=()=>{CUR=makeCtx({...a},{...b},ss.rel);Object.assign(CUR,{n:ss.n,total:ss.total,res:ss.res||[]});start()};
     $("#fresh").onclick=()=>{S.session=null;save();pickPerson(0,[],next)};
     return;
@@ -660,30 +973,30 @@ function setup(next){
 function pickPerson(i,chosen,next){
   const list=S.people.filter(p=>!chosen.some(c=>c.id===p.id));
   show(`
-  <div class="say"><h2>${i===0?"Wer bist du?":"Und wer spielt mit?"}</h2></div>
-  <p class="hint">${i===0?"Du hältst das Handy zuerst.":"Die zweite Person bekommt das Handy später."}</p>
+  <div class="say"><h2>${i===0?L("Wer bist du?","Who are you?"):L("Und wer spielt mit?","And who's playing with you?")}</h2></div>
+  <p class="hint">${i===0?L("Du hältst das Handy zuerst.","You hold the phone first."):L("Die zweite Person bekommt das Handy später.","The second person gets the phone later.")}</p>
   <div class="list">
-    ${list.map(p=>`<button class="item pick" data-id="${p.id}"><span class="e">${p.av}</span><div class="t"><div class="n">${esc(p.name)}</div><div class="g">${stageOf(p.stage)[1]} ${stageOf(p.stage)[2]}</div></div></button>`).join("")}
-    <button class="item pick" id="new"><span class="e plus-e">+</span><div class="t"><div class="n">Neue Person</div><div class="g">Wird gespeichert, damit das Album wächst</div></div></button>
-    <button class="item pick" id="anon"><span class="e">👤</span><div class="t"><div class="n">Anonym bleiben</div><div class="g">Nur für diese Runde, nichts wird gespeichert</div></div></button>
+    ${list.map(p=>`<button class="item pick" data-id="${p.id}"><span class="e">${p.av}</span><div class="t"><div class="n">${esc(p.name)}</div><div class="g">${stageOf(p.stage)[1]} ${stageName(p.stage)}</div></div></button>`).join("")}
+    <button class="item pick" id="new"><span class="e plus-e">+</span><div class="t"><div class="n">${L("Neue Person","New person")}</div><div class="g">${L("Wird gespeichert, damit das Album wächst","Saved so the album can grow")}</div></div></button>
+    <button class="item pick" id="anon"><span class="e">👤</span><div class="t"><div class="n">${L("Anonym bleiben","Stay anonymous")}</div><div class="g">${L("Nur für diese Runde, nichts wird gespeichert","Just for this game, nothing is saved")}</div></div></button>
   </div>`);
   const go=p=>{const c=[...chosen,p];if(c.length<2)pickPerson(1,c,next);else afterPeople(c[0],c[1],next)};
   stage.querySelectorAll("[data-id]").forEach(b=>b.onclick=()=>go({...person(b.dataset.id)}));
-  $("#new").onclick=()=>newPerson(false,go,i);
-  $("#anon").onclick=()=>newPerson(true,go,i);
+  $("#new").onclick=()=>newPerson(false,go);
+  $("#anon").onclick=()=>newPerson(true,go);
 }
-function newPerson(anon,done,i){
-  let av=anon?"👤":FACES[0], st="";
+function newPerson(anon,done){
+  let av=FACES[0], st="";
   show(`
-  <div class="say"><h2>${anon?"Anonym spielen":"Neue Person"}</h2></div>
+  <div class="say"><h2>${anon?L("Anonym spielen","Play anonymously"):L("Neue Person","New person")}</h2></div>
   <div class="form">
-    ${anon?"":`<div class="field"><label>Gesicht</label><div class="emojis">${FACES.map(f=>`<button data-f="${f}" aria-pressed="${f===av}">${f}</button>`).join("")}</div></div>
-    <div class="field"><label for="pn">Name</label><input id="pn" maxlength="18" placeholder="z. B. Mama, Lena, Opa Karl" autocomplete="off"></div>`}
-    <div class="field"><label>Lebensphase</label><div class="stages">${STAGES.map(([k,ic,l])=>`<button class="chip" data-s="${k}" aria-pressed="false"><span class="st-ic">${ic}</span>${l}</button>`).join("")}</div></div>
+    ${anon?"":`<div class="field"><label>${L("Gesicht","Face")}</label><div class="emojis">${FACES.map(f=>`<button data-f="${f}" aria-pressed="${f===av}">${f}</button>`).join("")}</div></div>
+    <div class="field"><label for="pn">${L("Name","Name")}</label><input id="pn" maxlength="18" placeholder="${L("z. B. Mama, Lena, Opa Karl","e.g. Mum, Lena, Grandpa Joe")}" autocomplete="off"></div>`}
+    <div class="field"><label>${L("Lebensphase","Life stage")}</label><div class="stages">${STAGES.map(([k,ic])=>`<button class="chip" data-s="${k}" aria-pressed="false"><span class="st-ic">${ic}</span>${stageName(k)}</button>`).join("")}</div></div>
   </div>
-  <div class="push"><button class="big primary" id="ok" disabled style="opacity:.4">${ARROW}<span>Weiter</span></button></div>`);
+  <div class="push"><button class="big primary" id="ok" disabled>${ARROW}<span>${L("Weiter","Next")}</span></button></div>`);
   const ok=$("#ok"), pn=$("#pn");
-  const upd=()=>{const good=st&&(anon||pn.value.trim());ok.disabled=!good;ok.style.opacity=good?1:.4};
+  const upd=()=>{ok.disabled=!(st&&(anon||pn.value.trim()))};
   stage.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{av=b.dataset.f;stage.querySelectorAll("[data-f]").forEach(x=>x.setAttribute("aria-pressed",x===b))});
   stage.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{st=b.dataset.s;stage.querySelectorAll("[data-s]").forEach(x=>x.setAttribute("aria-pressed",x===b));upd()});
   if(pn)pn.oninput=upd;
@@ -698,16 +1011,16 @@ function afterPeople(A,B,next){
   if(key&&S.rel[key])return finish(A,B,S.rel[key],next);
   show(`
   <div class="duo"><span class="face">${A.av}</span><span class="face">${B.av}</span></div>
-  <div class="say"><h2>Wie gehört ihr zusammen?</h2></div>
-  <p class="hint">${key?"Fragen wir nur beim ersten Mal.":"Damit die Fragen zu euch passen."}</p>
-  <div class="list">${RELS.map(([k,l,ic])=>`<button class="item pick" data-r="${k}"><span class="e">${ic}</span><div class="t"><div class="n">${l}</div></div></button>`).join("")}</div>`);
+  <div class="say"><h2>${L("Wie gehört ihr zusammen?","How do you belong together?")}</h2></div>
+  <p class="hint">${key?L("Fragen wir nur beim ersten Mal.","We only ask the first time."):L("Damit die Fragen zu euch passen.","So the questions fit you.")}</p>
+  <div class="list">${RELS.map(([k,de,en,ic])=>`<button class="item pick" data-r="${k}"><span class="e">${ic}</span><div class="t"><div class="n">${L(de,en)}</div></div></button>`).join("")}</div>`);
   stage.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{if(key){S.rel[key]=b.dataset.r;save()}finish(A,B,b.dataset.r,next)});
 }
 const ENDING={klein:"spruch",kind:"spruch",kinder:"spruch",teen:"meme",jung:"idee",paar:"idee"};
 const LENGTH={spruch:[10,5],meme:[8,4],idee:[12,4]};
 function finish(A,B,rel,next){
   CUR=makeCtx(A,B,rel);
-  const L=LENGTH[ENDING[CUR.g]];CUR.total=L[0];CUR.res=[];
+  CUR.total=LENGTH[ENDING[CUR.g]][0];CUR.res=[];
   if(CUR.key){S.lastPair=[A.id,B.id];save()}
   next();
 }
@@ -715,18 +1028,19 @@ function finish(A,B,rel,next){
 /* ---------- Vor der ersten Runde ---------- */
 function intro(){
   S.introSeen=true;save();
-  const t="Bevor es losgeht: Was macht nur ihr zwei miteinander? Ein geheimer Handschlag, das Sonntagsfrühstück, ein Spitzname. Legt eure Rituale als eigene Bondings an. Genau die sorgen oft für die größten Aha-Momente.";
+  const d=L("Ein geheimer Handschlag, das Sonntagsfrühstück, ein Spitzname. Legt eure Rituale als eigene Bondings an. Sie sorgen oft für die größten Aha-Momente.","A secret handshake, Sunday breakfast, a nickname. Add your rituals as your own bondings. They often bring the biggest aha moments.");
+  const t=L("Was macht nur ihr zwei?","What do only you two do?");
   show(`
   <div class="handoff" style="border-color:var(--accent)">
     <span class="plus" style="width:72px;height:72px;font-size:44px;border-radius:20px">+</span>
-    <div class="say"><span class="h2like" style="text-align:center">Was macht nur ihr zwei?</span>${sayBtn(t)}</div>
-    <p class="hint">Ein geheimer Handschlag, das Sonntagsfrühstück, ein Spitzname. Legt eure Rituale als eigene Bondings an. Sie sorgen oft für die größten Aha-Momente.</p>
+    <div class="say"><span class="h2like" style="text-align:center">${t}</span>${sayBtn(t+" "+d)}</div>
+    <p class="hint">${d}</p>
   </div>
   <div class="push">
-    <button class="big primary" id="mk">${PLUS}<span>Bonding erstellen</span></button>
-    <button class="big soft" id="skip"><span>Erst mal spielen</span></button>
+    <button class="big primary" id="mk">${PLUS}<span>${L("Bonding erstellen","Create a bonding")}</span></button>
+    <button class="big soft" id="skip"><span>${L("Erst mal spielen","Just play first")}</span></button>
   </div>`);
-  speak(t);
+  speak(t+" "+d);
   $("#mk").onclick=()=>create(start);
   $("#skip").onclick=start;
 }
@@ -743,7 +1057,6 @@ function drawGesture(ai,exclude){
   const own=list.filter(g=>g.custom);
   if(own.length&&Math.random()<.6)return own[Math.floor(Math.random()*own.length)];
   list=list.filter(g=>!g.custom).length?list.filter(g=>!g.custom):list;
-  // Kategorie nach Gewichtung ziehen, nur unter Kategorien mit Kandidaten
   const W=WEIGHTS[CUR.g], cats=["s","w","e"].filter(k=>list.some(g=>g.c===k));
   if(cats.length){
     const tot=cats.reduce((n,k)=>n+W[k],0); let r=Math.random()*tot, cat=cats[0];
@@ -752,10 +1065,7 @@ function drawGesture(ai,exclude){
   }
   return list[Math.floor(Math.random()*list.length)];
 }
-function nextAnswerer(n){
-  if(CUR.asym)return n%2?CUR.younger:CUR.older;
-  return n%2?1:0;
-}
+function nextAnswerer(n){return CUR.asym?(n%2?CUR.younger:CUR.older):(n%2?1:0)}
 function start(){
   if(CUR.n>=CUR.total)return endGame();
   CUR.n++;
@@ -763,12 +1073,13 @@ function start(){
   R={ai,gi:1-ai,g:drawGesture(ai)};
   ask("guess");
 }
+const progress=(n,t,code)=>`<div class="link-pill">${code?`📱 ${code} · `:""}${L(`Frage ${n} von ${t}`,`Question ${n} of ${t}`)}</div>`;
 
 /* ---------- Herzen wählen ---------- */
-function askScreen(role,p,g,ai,withOther,pill){
-  const guess=role==="guess", q=Q(role,ai,g.p), w=words(), kid=isKid(p);
-  const title=guess?"Was glaubst du?":(GROUPS[group()].young?"Wie doll?":"Wie sehr?");
-  const hint=guess?q.replace("Was glaubst du: ",""):(kid?"Je größer das Herz, desto stärker.":q);
+function askScreen(role,p,g0,ai,withOther,pill){
+  const g=loc(g0), guess=role==="guess", q=Q(role,ai,g.p), w=words(), kid=isKid(p);
+  const title=guess?L("Was glaubst du?","What do you think?"):(GROUPS[group()].young?L("Wie doll?","How much?"):L("Wie sehr?","How much?"));
+  const hint=guess?stripGuess(q):(kid?L("Je größer das Herz, desto stärker.","The bigger the heart, the stronger."):q);
   const meme=style()==="meme";
   show(`
   ${pill||""}
@@ -776,23 +1087,23 @@ function askScreen(role,p,g,ai,withOther,pill){
        :`<div class="duo draw spin"><div class="face">${p.av}</div>${art(g)}</div><div class="gname">${esc(g.n)}</div>`}
   <div class="say"><h2>${title}</h2>${sayBtn(q)}</div>
   <p class="hint">${esc(hint)}</p>
-  <div class="scale" role="radiogroup" aria-label="Stärke, 1 bis 5">
+  <div class="scale" role="radiogroup" aria-label="${L("Stärke, 1 bis 5","Strength, 1 to 5")}">
     ${[1,2,3,4,5].map(i=>`<button role="radio" aria-checked="false" aria-label="${w[i-1]}" data-v="${i}">${heart(30+i*9)}</button>`).join("")}
   </div>
-  ${withOther?`<button class="tiny" id="other">${DICE}<span>Passt nicht? Andere Geste</span></button>`:""}
-  <div class="push"><button class="big primary" id="ok" disabled style="opacity:.4">${CHECK}<span>Fertig</span></button></div>`);
+  ${withOther?`<button class="tiny" id="other">${DICE}<span>${L("Passt nicht? Andere Geste","Doesn't fit? Another one")}</span></button>`:""}
+  <div class="push"><button class="big primary" id="ok" disabled>${CHECK}<span>${L("Fertig","Done")}</span></button></div>`);
   speak(kid?q:g.n);
   let v=0;
   stage.querySelectorAll(".scale button").forEach(b=>b.onclick=()=>{
     v=+b.dataset.v;
     stage.querySelectorAll(".scale button").forEach(x=>{x.classList.toggle("on",+x.dataset.v<=v);x.setAttribute("aria-checked",+x.dataset.v===v)});
-    enable($("#ok"));if(kid)speak(w[v-1]);
+    $("#ok").disabled=false;if(kid)speak(w[v-1]);
   });
   return new Promise(res=>{$("#ok").onclick=()=>{if(v)res(v)}});
 }
 async function ask(role){
   const guess=role==="guess", p=CUR.P[guess?R.gi:R.ai];
-  const pr=askScreen(role,p,R.g,R.ai,guess,`<div class="link-pill">Frage ${CUR.n} von ${CUR.total}</div>`);
+  const pr=askScreen(role,p,R.g,R.ai,guess,progress(CUR.n,CUR.total));
   if(guess)$("#other").onclick=()=>{R.g=drawGesture(R.ai,R.g.id);ask("guess")};
   const v=await pr;
   if(guess){R.gv=v;handoff()}else{R.av=v;reveal()}
@@ -801,59 +1112,61 @@ async function ask(role){
 /* ---------- Weitergeben ---------- */
 function handoff(){
   const p=CUR.P[R.ai];
-  const who=p.anon?"Jetzt bist du dran!":`${esc(p.name)}, jetzt bist du dran!`;
+  const who=p.anon?L("Jetzt bist du dran!","Your turn now!"):L(`${esc(p.name)}, jetzt bist du dran!`,`${esc(p.name)}, it's your turn!`);
   show(`
-  <button class="handoff" id="go" aria-label="Weiter, ich bin dran">
+  <button class="handoff" id="go" aria-label="${L("Weiter, ich bin dran","Next, it's my turn")}">
     <div class="face">${p.av}</div>
     <span class="h2like">${who}</span>
-    <p class="hint">Gib das Handy weiter. Dann auf das Gesicht tippen.</p>
+    <p class="hint">${L("Gib das Handy weiter. Dann auf das Gesicht tippen.","Pass the phone on. Then tap the face.")}</p>
   </button>`);
-  speak(p.anon?"Gib das Handy weiter.":`Gib das Handy an ${p.name}.`);
+  speak(p.anon?L("Gib das Handy weiter.","Pass the phone on."):L(`Gib das Handy an ${p.name}.`,`Pass the phone to ${p.name}.`));
   $("#go").onclick=()=>ask("answer");
 }
 
 /* ---------- Aufdecken ---------- */
 function outcome(){
   const ans=CUR.P[R.ai], d=R.av-R.gv, ad=Math.abs(d);
-  if(ad===0)return ["Genau gleich!","Ihr kennt euch richtig gut.",ad];
-  if(ad===1)return ["Ganz nah beieinander!","Fast dasselbe Gefühl.",ad];
-  if(d>0)return ["Oh, das ist neu!",`Das bedeutet ${ans.dat} noch mehr, als gedacht. Erzählt euch mal, warum!`,ad];
-  return ["Oh, das ist neu!",`Fragt mal nach: Was fühlt sich für ${ans.nom} noch schöner an?`,ad];
+  if(ad===0)return [L("Genau gleich!","Exactly the same!"),L("Ihr kennt euch richtig gut.","You really know each other."),ad];
+  if(ad===1)return [L("Ganz nah beieinander!","So close!"),L("Fast dasselbe Gefühl.","Almost the same feeling."),ad];
+  if(d>0)return [L("Oh, das ist neu!","Oh, that's new!"),L(`Das bedeutet ${ans.dat} noch mehr, als gedacht. Erzählt euch mal, warum!`,`It means even more to ${ans.nom} than expected. Tell each other why!`),ad];
+  return [L("Oh, das ist neu!","Oh, that's new!"),L(`Fragt mal nach: Was fühlt sich für ${ans.nom} noch schöner an?`,`Ask: What would feel even better for ${ans.nom}?`),ad];
 }
 function record(){
-  const ans=CUR.P[R.ai], gs=CUR.P[R.gi];
+  const ans=CUR.P[R.ai], gs=CUR.P[R.gi], g=loc(R.g);
   const store=playedFor(R.ai), before=store[R.g.id];
-  store[R.g.id]={k:R.av,a:R.gv,t:Date.now(),e:R.g.e||"",i:R.g.i||"",n:R.g.n,by:gs.av};
+  store[R.g.id]={k:R.av,a:R.gv,t:Date.now(),e:R.g.e||"",i:R.g.i||"",n:g.n,by:gs.av};
   if(ans.id&&person(ans.id))S.album[ans.id]=store;
   const rk=CUR.key||"anon", rec=S.recent[rk]||(S.recent[rk]=[]);rec.push(R.g.id);while(rec.length>4)rec.shift();
-  CUR.res=CUR.res||[];CUR.res.push({n:R.g.n,e:R.g.e||"",i:R.g.i||"",c:R.g.c||"s",gv:R.gv,av:R.av,ai:R.ai});
+  CUR.res=CUR.res||[];CUR.res.push({id:R.g.id,n:g.n,e:R.g.e||"",i:R.g.i||"",c:R.g.c||"s",gv:R.gv,av:R.av,ai:R.ai,custom:!!R.g.custom});
   if(!M.nr)S.session={P:CUR.P.map(slim),rel:CUR.rel,n:CUR.n,total:CUR.total,res:CUR.res};
   S.rounds++;save();
   return before;
 }
 function reveal(onNext){
+  const g=loc(R.g);
   const row=v=>`<div class="mini">${[1,2,3,4,5].map(i=>`<span class="${i<=v?"on":""}">${heart(16+i*3)}</span>`).join("")}</div>`;
   const side=(p,v)=>`<div class="flip"><div class="flip-in">
     <div class="side"><div class="face">${p.av}</div><div class="cover">?</div></div>
     <div class="side back"><div class="face">${p.av}</div>${row(v)}</div></div></div>`;
   show(`
-  <div class="duo">${art(R.g,"sm")}</div>
-  ${style()==="meme"?"":`<div class="gname">${esc(R.g.n)}</div>`}
+  <div class="duo">${art(g,"sm")}</div>
+  ${style()==="meme"?"":`<div class="gname">${esc(g.n)}</div>`}
   <div class="reveal">${side(CUR.P[R.gi],R.gv)}${side(CUR.P[R.ai],R.av)}</div>
   <div class="result" id="res" hidden></div>
-  <div class="push" id="act"><button class="big primary" id="open">${heart(28,"on")}<span>Aufdecken</span></button></div>`);
-  speak("Seid ihr bereit? Dann deckt auf!");
+  <div class="push" id="act"><button class="big primary" id="open">${heart(28,"on")}<span>${L("Aufdecken","Reveal")}</span></button></div>`);
+  speak(L("Seid ihr bereit? Dann deckt auf!","Ready? Then reveal!"));
   $("#open").onclick=()=>{
     const f=stage.querySelectorAll(".flip");f[0].classList.add("open");setTimeout(()=>f[1].classList.add("open"),350);
     let [h,t,ad]=outcome();
     const before=record();
-    if(before&&before.k!==R.av)t+=` Letztes Mal waren es ${before.k} Herzen, jetzt ${R.av}.`;
+    if(before&&before.k!==R.av)t+=L(` Letztes Mal waren es ${before.k} Herzen, jetzt ${R.av}.`,` Last time it was ${before.k} hearts, now ${R.av}.`);
     setTimeout(()=>{
       const r=$("#res");r.hidden=false;r.innerHTML=`<h2>${h}</h2><p class="hint">${esc(t)}</p>`;speak(h+" "+t);
       if(ad<=1)burst(ad===0?22:12);
       const showNudge=!onNext&&(S.rounds%2===0||!ownCount()&&S.rounds%3===1);
-      $("#act").innerHTML=`${showNudge?nudge("Fällt euch noch was ein?","Erstellt ein eigenes Bonding für die nächste Runde."):""}
-        <div class="row"><button class="big soft" id="alb" aria-label="Album" style="flex:0 0 76px">${BOOK}</button><button class="big primary" id="again">${ARROW}<span>${(M.round?M.round.n>=M.round.total:CUR.n>=CUR.total)?"Zum Ergebnis":"Nächste Runde"}</span></button></div>`;
+      const last=M.round?M.round.n>=M.round.total:CUR.n>=CUR.total;
+      $("#act").innerHTML=`${showNudge?nudge(L("Fällt euch noch was ein?","Got another idea?"),L("Erstellt ein eigenes Bonding für die nächste Runde.","Create your own bonding for the next round.")):""}
+        <div class="row"><button class="big soft" id="alb" aria-label="Album" style="flex:0 0 76px">${BOOK}</button><button class="big primary" id="again">${ARROW}<span>${last?L("Zum Ergebnis","See result"):L("Nächste Runde","Next round")}</span></button></div>`;
       $("#again").onclick=onNext||start;
       $("#alb").onclick=()=>album(CUR.P[R.ai].id);
       wireNudge(start);
@@ -865,6 +1178,7 @@ function burst(n){const b=$("#burst");for(let i=0;i<n;i++){const s=document.crea
 /* ---------- Eigenes Bonding ---------- */
 function create(after,gSel){
   let g=gSel||group(), pick=null, dir="kid";
+  const W=L("wenn","when");
   const draw=()=>{
     const st=GROUPS[g].style;
     if(!pick||(st==="emoji")!==!ICONS[pick])pick=st==="emoji"?"❤️":"heart";
@@ -873,29 +1187,30 @@ function create(after,gSel){
       :`<div class="icons">${Object.keys(ICONS).map(k=>`<button data-p="${k}" aria-pressed="${k===pick}" aria-label="${k}">${iconSvg(k,1.7)}</button>`).join("")}</div>`;
     const keep={bn:$("#bn")?.value||"",bp:$("#bp")?.value||"",mt:$("#mt")?.value||"",mb:$("#mb")?.value||""};
     show(`
-    <div class="say"><h2>Neues Bonding</h2></div>
+    <div class="say"><h2>${L("Neues Bonding","New bonding")}</h2></div>
     <div class="form">
-      <div class="field"><label>Themenwelt</label><div class="stages">${Object.entries(GROUPS).map(([k,x])=>`<button class="chip" data-g="${k}" aria-pressed="${k===g}"><span class="st-ic">${x.ico}</span>${x.n}</button>`).join("")}</div></div>
-      ${GROUPS[g].asym?`<div class="field"><label>Wer antwortet?</label><div class="tabs">
-        <button class="chip" data-d="kid" aria-pressed="${dir==="kid"}">Die Jüngeren</button>
-        <button class="chip" data-d="parent" aria-pressed="${dir==="parent"}">Die Älteren</button></div></div>`:""}
-      <div class="field"><label>Bild</label>${picker}</div>
-      <div class="field"><label for="bn">Name</label><input id="bn" maxlength="24" placeholder="z. B. Geheimer Handschlag" autocomplete="off"></div>
-      <div class="field"><label for="bp">Wann?</label><div class="pre"><em>wenn</em><input id="bp" maxlength="60" placeholder="ihr euren Handschlag macht" autocomplete="off"></div></div>
-      ${st==="meme"?`<div class="field"><label for="mt">Meme oben (optional)</label><input id="mt" maxlength="40" placeholder="z. B. Unser Handschlag" autocomplete="off"></div>
-      <div class="field"><label for="mb">Meme unten (optional)</label><input id="mb" maxlength="50" placeholder="z. B. Geheimer als jedes Passwort" autocomplete="off"></div>`:""}
+      <div class="field"><label>${L("Themenwelt","Theme")}</label><div class="stages">${Object.entries(GROUPS).map(([k,x])=>`<button class="chip" data-g="${k}" aria-pressed="${k===g}"><span class="st-ic">${x.ico}</span>${gName(k)}</button>`).join("")}</div></div>
+      ${GROUPS[g].asym?`<div class="field"><label>${L("Wer antwortet?","Who answers?")}</label><div class="tabs">
+        <button class="chip" data-d="kid" aria-pressed="${dir==="kid"}">${L("Die Jüngeren","The younger one")}</button>
+        <button class="chip" data-d="parent" aria-pressed="${dir==="parent"}">${L("Die Älteren","The older one")}</button></div></div>`:""}
+      <div class="field"><label>${L("Bild","Picture")}</label>${picker}</div>
+      <div class="field"><label for="bn">${L("Name","Name")}</label><input id="bn" maxlength="24" placeholder="${L("z. B. Geheimer Handschlag","e.g. Secret handshake")}" autocomplete="off"></div>
+      <div class="field"><label for="bp">${L("Wann?","When?")}</label><div class="pre"><em>${W}</em><input id="bp" maxlength="60" placeholder="${L("ihr euren Handschlag macht","you do your handshake")}" autocomplete="off"></div></div>
+      ${st==="meme"?`<div class="field"><label for="mt">${L("Meme oben (optional)","Meme top (optional)")}</label><input id="mt" maxlength="40" placeholder="${L("z. B. Unser Handschlag","e.g. Our handshake")}" autocomplete="off"></div>
+      <div class="field"><label for="mb">${L("Meme unten (optional)","Meme bottom (optional)")}</label><input id="mb" maxlength="50" placeholder="${L("z. B. Geheimer als jedes Passwort","e.g. More secret than any password")}" autocomplete="off"></div>`:""}
       <div id="pv"></div>
     </div>
-    <div class="push"><button class="big primary" id="sv" disabled style="opacity:.4">${CHECK}<span>Speichern</span></button></div>`);
+    <div class="push"><button class="big primary" id="sv" disabled>${CHECK}<span>${L("Speichern","Save")}</span></button></div>`);
     const bn=$("#bn"),bp=$("#bp"),pv=$("#pv"),sv=$("#sv"),mt=$("#mt"),mb=$("#mb");
     bn.value=keep.bn;bp.value=keep.bp;if(mt)mt.value=keep.mt;if(mb)mb.value=keep.mb;
-    const clean=()=>bp.value.trim().replace(/^wenn\s+/i,"").replace(/[?.!]+$/,"");
-    const obj=()=>{const o={n:bn.value.trim()||"Euer Bonding",p:"wenn "+(clean()||"…")};if(st==="emoji")o.e=pick;else o.i=pick;if(mt&&mt.value.trim())o.mt=mt.value.trim();if(mb&&mb.value.trim())o.mb=mb.value.trim();return o};
+    const clean=()=>bp.value.trim().replace(/^(wenn|when)\s+/i,"").replace(/[?.!]+$/,"");
+    const obj=()=>{const o={n:bn.value.trim()||L("Euer Bonding","Your bonding"),p:W+" "+(clean()||"…")};if(st==="emoji")o.e=pick;else o.i=pick;if(mt&&mt.value.trim())o.mt=mt.value.trim();if(mb&&mb.value.trim())o.mb=mb.value.trim();return o};
     const upd=()=>{
-      const o=obj(), young=GROUPS[g].young;
-      const q=young?(GROUPS[g].asym&&dir==="kid"?`Wie doll fühlst du dich lieb gehabt, ${o.p}?`:`Wie doll freust du dich, ${o.p}?`):`Wie viel bedeutet es dir, ${o.p}?`;
+      const o=obj(), young=GROUPS[g].young, love=GROUPS[g].asym&&dir==="kid";
+      const q=EN_ON()?(young?(love?`How loved do you feel ${o.p}?`:`How happy are you ${o.p}?`):`How much does it mean to you ${o.p}?`)
+                     :(young?(love?`Wie doll fühlst du dich lieb gehabt, ${o.p}?`:`Wie doll freust du dich, ${o.p}?`):`Wie viel bedeutet es dir, ${o.p}?`);
       pv.innerHTML=st==="meme"?art(o,"sm","meme"):`<div class="preview">${thumb(o)}<span>${esc(q)}</span></div>`;
-      const ok=bn.value.trim()&&clean();sv.disabled=!ok;sv.style.opacity=ok?1:.4;
+      sv.disabled=!(bn.value.trim()&&clean());
     };
     stage.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{pick=b.dataset.p;stage.querySelectorAll("[data-p]").forEach(x=>x.setAttribute("aria-pressed",x===b));upd()});
     stage.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{dir=b.dataset.d;stage.querySelectorAll("[data-d]").forEach(x=>x.setAttribute("aria-pressed",x===b));upd()});
@@ -912,15 +1227,15 @@ function create(after,gSel){
 function manage(after){
   const all=Object.entries(S.custom).flatMap(([g,l])=>l.map(c=>({...c,g})));
   show(`
-  <div class="say"><h2>Eure Bondings</h2></div>
-  <p class="hint">Eigene Bondings kommen in den nächsten Runden bevorzugt dran.</p>
-  <div class="list">${all.map(c=>`<div class="item">${thumb(c)}<div class="t"><div class="n">${esc(c.n)}</div><div class="g">${GROUPS[c.g].ico} ${GROUPS[c.g].n} · ${esc(c.p)}</div></div><button class="del" data-del="${c.id}" data-g="${c.g}">Löschen</button></div>`).join("")}</div>
+  <div class="say"><h2>${L("Eure Bondings","Your bondings")}</h2></div>
+  <p class="hint">${L("Eigene Bondings kommen in den nächsten Runden bevorzugt dran.","Your own bondings come up first in the next rounds.")}</p>
+  <div class="list">${all.map(c=>`<div class="item">${thumb(c)}<div class="t"><div class="n">${esc(c.n)}</div><div class="g">${GROUPS[c.g].ico} ${gName(c.g)} · ${esc(c.p)}</div></div><button class="del" data-del="${c.id}" data-g="${c.g}">${L("Löschen","Delete")}</button></div>`).join("")}</div>
   <div class="push">
-    <button class="big soft" id="more">${PLUS}<span>Noch eins</span></button>
-    <button class="big primary" id="go">${ARROW}<span>Weiter</span></button>
+    <button class="big soft" id="more">${PLUS}<span>${L("Noch eins","Add another")}</span></button>
+    <button class="big primary" id="go">${ARROW}<span>${L("Weiter","Next")}</span></button>
   </div>`);
   stage.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
-    if(!b.classList.contains("sure")){b.classList.add("sure");b.textContent="Sicher?";return}
+    if(!b.classList.contains("sure")){b.classList.add("sure");b.textContent=L("Sicher?","Sure?");return}
     S.custom[b.dataset.g]=(S.custom[b.dataset.g]||[]).filter(c=>c.id!==b.dataset.del);save();manage(after);
   });
   $("#more").onclick=()=>create(after);
@@ -931,75 +1246,85 @@ function manage(after){
 function album(pid){
   const people=S.people;
   if(!people.length){
-    show(`<div class="say"><h2>Album</h2></div>
-    <div class="empty"><span class="e">📖</span><h2>Noch leer</h2><p class="hint">Legt beim nächsten Spiel Personen an. Dann sammelt sich hier, was jedem von euch am meisten bedeutet.</p></div>
-    <div class="push"><button class="big primary" id="play">${ARROW}<span>Spielen</span></button></div>`);
+    show(`<div class="say"><h2>${L("Album","Album")}</h2></div>
+    <div class="empty"><span class="e">📖</span><h2>${L("Noch leer","Still empty")}</h2><p class="hint">${L("Legt beim nächsten Spiel Personen an. Dann sammelt sich hier, was jedem von euch am meisten bedeutet.","Add people in your next game. This is where you'll see what matters most to each of you.")}</p></div>
+    <div class="push"><button class="big primary" id="play">${ARROW}<span>${L("Spielen","Play")}</span></button></div>`);
     $("#play").onclick=()=>setup(start);return;
   }
   const cur=person(pid)||people[0];
   const a=S.album[cur.id]||{};
-  const items=Object.values(a).sort((x,y)=>y.k-x.k||y.t-x.t);
+  const items=Object.entries(a).map(([id,x])=>({...x,n:nameFor(id,x.n)})).sort((x,y)=>y.k-x.k||y.t-x.t);
   const row=(v,s)=>`<span class="mini">${[1,2,3,4,5].map(i=>`<span class="${i<=v?"on":""}">${heart(s+i*2)}</span>`).join("")}</span>`;
   const top=[...items].sort((x,y)=>Math.abs(y.k-y.a)-Math.abs(x.k-x.a))[0];
-  const find=top&&Math.abs(top.k-top.a)>=2?`<div class="find">${thumb(top)}<div><b>Größte Entdeckung: ${esc(top.n)}</b><span>${top.by||""} hat ${top.a} ${top.a>1?"Herzen":"Herz"} geschätzt, ${cur.av} fühlt ${top.k}.</span></div></div>`:"";
+  const find=top&&Math.abs(top.k-top.a)>=2?`<div class="find">${thumb(top)}<div><b>${L("Größte Entdeckung","Biggest discovery")}: ${esc(top.n)}</b><span>${L(`${top.by||""} hat ${top.a} ${top.a>1?"Herzen":"Herz"} geschätzt, ${cur.av} fühlt ${top.k}.`,`${top.by||""} guessed ${top.a} heart${top.a>1?"s":""}, ${cur.av} feels ${top.k}.`)}</span></div></div>`:"";
   show(`
-  <div class="say"><h2>Album</h2>${sayBtn(`Hier siehst du, was ${cur.name} am meisten bedeutet.`)}</div>
+  <div class="say"><h2>${L("Album","Album")}</h2>${sayBtn(L(`Hier siehst du, was ${cur.name} am meisten bedeutet.`,`Here you can see what matters most to ${cur.name}.`))}</div>
   <div class="people">${people.map(p=>`<button class="chip" data-p="${p.id}" aria-pressed="${p.id===cur.id}"><span class="st-ic">${p.av}</span>${esc(p.name)}</button>`).join("")}</div>
-  ${items.length?`${find}<div class="list">${items.map(x=>`<div class="item">${thumb(x)}<div class="t"><div class="n">${esc(x.n)}</div><div class="g">${x.by||""} geschätzt ${row(x.a,6)}</div></div>${row(x.k,12)}</div>`).join("")}</div>`
-  :`<div class="empty"><span class="e">${cur.av}</span><h2>Noch leer</h2><p class="hint">Sobald ${esc(cur.name)} eine Frage beantwortet hat, steht hier, was am meisten bedeutet.</p></div>`}
-  ${nudge("Eigenes Bonding erstellen",ownCount()?`${ownCount()} eigene schon dabei. Was fehlt noch?`:"Was macht nur ihr zwei miteinander?")}
-  ${ownCount()?`<button class="tiny" id="mg">Eigene Bondings verwalten</button>`:""}
-  <div class="push"><button class="big primary" id="play">${ARROW}<span>Spielen</span></button></div>`);
+  ${items.length?`${find}<div class="list">${items.map(x=>`<div class="item">${thumb(x)}<div class="t"><div class="n">${esc(x.n)}</div><div class="g">${x.by||""} ${L("geschätzt","guessed")} ${row(x.a,6)}</div></div>${row(x.k,12)}</div>`).join("")}</div>`
+  :`<div class="empty"><span class="e">${cur.av}</span><h2>${L("Noch leer","Still empty")}</h2><p class="hint">${L(`Sobald ${esc(cur.name)} eine Frage beantwortet hat, steht hier, was am meisten bedeutet.`,`Once ${esc(cur.name)} has answered a question, you'll see here what matters most.`)}</p></div>`}
+  ${nudge(L("Eigenes Bonding erstellen","Create your own bonding"),ownCount()?L(`${ownCount()} eigene schon dabei. Was fehlt noch?`,`${ownCount()} of your own so far. What's missing?`):L("Was macht nur ihr zwei miteinander?","What do only you two do together?"))}
+  ${ownCount()?`<button class="tiny" id="mg">${L("Eigene Bondings verwalten","Manage your bondings")}</button>`:""}
+  <div class="push"><button class="big primary" id="play">${ARROW}<span>${L("Spielen","Play")}</span></button></div>`);
   stage.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>album(b.dataset.p));
   wireNudge(()=>album(cur.id));
   if(ownCount())$("#mg").onclick=()=>manage(()=>album(cur.id));
   $("#play").onclick=()=>setup(start);
 }
 
-
 /* =========================================================
    Spielende: je nach Szenario Spruch, Meme oder Aktivität
    ========================================================= */
-const SPRUCH={
-  hoch:["Ihr zwei seid ein echtes Herz-Team! Ihr spürt ganz genau, was der andere braucht.",
-        "Wow! Ihr kennt eure Herzen richtig gut. Das ist ein großer Schatz.",
-        "Ihr habt ganz oft gleich gefühlt. Das nennt man: sich blind verstehen!"],
-  mittel:["Ihr habt viel Gleiches gefühlt und ein paar neue Sachen entdeckt. So wachsen Herzen zusammen.",
-        "Schön, wie viel ihr schon voneinander wisst. Und jetzt wisst ihr sogar noch ein bisschen mehr!",
-        "Manches wusstet ihr schon, manches war neu. Genau so lernt man sich immer besser kennen."],
-  neu:["Heute habt ihr ganz viel Neues übereinander gelernt. Das ist das Tollste am Fragen!",
-        "Überraschung! Eure Herzen haben heute viele Geheimnisse verraten. Jetzt könnt ihr euch noch besser lieb haben.",
-        "So viel Neues! Wer fragt, zeigt: Du bist mir wichtig. Und das habt ihr heute ganz oft gezeigt."]
-};
-const MEME_END={
+const SPRUCH={de:{
+  hoch:["Ihr zwei seid ein echtes Herz-Team! Ihr spürt ganz genau, was der andere braucht.","Wow! Ihr kennt eure Herzen richtig gut. Das ist ein großer Schatz.","Ihr habt ganz oft gleich gefühlt. Das nennt man: sich blind verstehen!"],
+  mittel:["Ihr habt viel Gleiches gefühlt und ein paar neue Sachen entdeckt. So wachsen Herzen zusammen.","Schön, wie viel ihr schon voneinander wisst. Und jetzt wisst ihr sogar noch ein bisschen mehr!","Manches wusstet ihr schon, manches war neu. Genau so lernt man sich immer besser kennen."],
+  neu:["Heute habt ihr ganz viel Neues übereinander gelernt. Das ist das Tollste am Fragen!","Überraschung! Eure Herzen haben heute viele Geheimnisse verraten. Jetzt könnt ihr euch noch besser lieb haben.","So viel Neues! Wer fragt, zeigt: Du bist mir wichtig. Und das habt ihr heute ganz oft gezeigt."]},
+ en:{
+  hoch:["You two are a real heart team! You know exactly what the other one needs.","Wow! You really know each other's hearts. That's a big treasure.","You felt the same so often. That's called understanding each other blindly!"],
+  mittel:["You felt lots of things the same and discovered a few new ones. That's how hearts grow together.","Lovely how much you already know about each other. And now you know even a bit more!","Some things you knew, some were new. That's exactly how you get to know each other better and better."],
+  neu:["Today you learned so much that's new about each other. That's the best thing about asking!","Surprise! Your hearts gave away lots of secrets today. Now you can love each other even better.","So much that's new! Asking shows: you matter to me. And you showed that a lot today."]}};
+const MEME_END={de:{
   hoch:[["Eltern und Teen verstehen sich","Wissenschaft: verwirrt"],["Gleich geschätzt. Schon wieder.","Seid ihr dieselbe Person?"],["Wenn deine Eltern dich besser kennen","als dein Algorithmus"]],
   mittel:[["Ein paar Treffer, ein paar Überraschungen","Familie. Läuft. Halbwegs."],["Eltern lagen manchmal daneben","aber sie haben's wenigstens versucht"],["Halb richtig geraten","ist auch halb verstanden"]],
-  neu:[["Eltern dachten, sie kennen mich","Plot Twist"],["So viele Überraschungen","Zeit für ein Update: Eltern 2.0"],["Heute gelernt:","Ich bin ein Mysterium. Aber ein nettes."]]
-};
-const IDEEN={
-  partner:{
-    s:["Kocht zusammen ein Drei-Gänge-Menü bei Kerzenlicht. Jeder übernimmt einen Gang als Überraschung.","Schreibt euch gegenseitig einen kurzen Liebesbrief und lest ihn euch beim Frühstück vor."],
+  neu:[["Eltern dachten, sie kennen mich","Plot Twist"],["So viele Überraschungen","Zeit für ein Update: Eltern 2.0"],["Heute gelernt:","Ich bin ein Mysterium. Aber ein nettes."]]},
+ en:{
+  hoch:[["Parents and teen agree","Science: confused"],["Same guess. Again.","Are you the same person?"],["When your parents know you better","than your algorithm"]],
+  mittel:[["Some hits, some surprises","Family. Working. Sort of."],["Parents were off sometimes","but at least they tried"],["Half right","is also half understood"]],
+  neu:[["Parents thought they knew me","Plot twist"],["So many surprises","Time for an update: Parents 2.0"],["Learned today:","I'm a mystery. A nice one, though."]]}};
+const IDEEN={de:{
+  partner:{s:["Kocht zusammen ein Drei-Gänge-Menü bei Kerzenlicht. Jeder übernimmt einen Gang als Überraschung.","Schreibt euch gegenseitig einen kurzen Liebesbrief und lest ihn euch beim Frühstück vor."],
     w:["Tanzt heute Abend zu eurer Playlist aus der Kennenlernzeit. Das Wohnzimmer zählt auch.","Macht ein Spontan-Date: An jeder Kreuzung entscheidet eine Münze, wohin es geht."],
     e:["Geht ohne Handy spazieren und beantwortet euch abwechselnd: Was brauche ich gerade von dir?","Plant einen Tag, an dem nur passiert, was dem anderen am meisten bedeutet. Die Ideen habt ihr gerade bekommen."]},
-  freunde:{
-    s:["Zeigt euch gegenseitig einen Lieblingsort, den der andere noch nicht kennt.","Schaut zusammen alte Fotos durch und sucht euren Lieblingsmoment aus."],
+  freunde:{s:["Zeigt euch gegenseitig einen Lieblingsort, den der andere noch nicht kennt.","Schaut zusammen alte Fotos durch und sucht euren Lieblingsmoment aus."],
     w:["Probiert eine Sportart aus, die keiner von euch kann: Bouldern, Tischtennis oder Stand-up-Paddling.","Fordert euch heraus: Minigolf, Fahrradtour oder ein 5-km-Lauf mit kleinem Wetteinsatz."],
     e:["Nehmt euch einen Abend für ein langes Gespräch: Jeder erzählt von einem Ziel, bei dem der andere helfen kann.","Macht eine lange Wanderung und sprecht über das, was euch gerade wirklich beschäftigt."]},
-  geschwister:{
-    s:["Kocht das Lieblingsessen aus eurer Kindheit nach.","Besucht zusammen einen Ort aus eurer Kindheit."],
+  geschwister:{s:["Kocht das Lieblingsessen aus eurer Kindheit nach.","Besucht zusammen einen Ort aus eurer Kindheit."],
     w:["Spieleabend wie früher, mit genau dem Brettspiel, bei dem immer gestritten wurde.","Macht einen Ausflug in den Kletterpark oder auf die Kartbahn."],
     e:["Erzählt euch, wofür ihr dem anderen eigentlich nie gedankt habt.","Erfindet ein Geschwister-Ritual, zum Beispiel ein festes Telefonat einmal im Monat."]},
-  eltern:{
-    s:["Kocht gemeinsam ein Familienrezept und schreibt es zusammen auf.","Blättert gemeinsam durch alte Fotoalben und erzählt euch die Geschichten dahinter."],
+  eltern:{s:["Kocht gemeinsam ein Familienrezept und schreibt es zusammen auf.","Blättert gemeinsam durch alte Fotoalben und erzählt euch die Geschichten dahinter."],
     w:["Bringt euch gegenseitig etwas bei: ein Handy-Trick gegen ein altes Familienrezept.","Macht einen Ausflug wie früher: Zoo, Schwimmbad oder Eisdiele."],
-    e:["Stellt euch Fragen, die ihr euch noch nie gestellt habt: Wie war ich als Kind? Was wünschst du dir für mich?","Verabredet ein festes Ritual: ein Frühstück zu zweit, einmal im Monat."]}
-};
-IDEEN.grosseltern=IDEEN.eltern;
-const CAT_WORD={s:"liebevolle",w:"lustige",e:"tiefgründige"};
+    e:["Stellt euch Fragen, die ihr euch noch nie gestellt habt: Wie war ich als Kind? Was wünschst du dir für mich?","Verabredet ein festes Ritual: ein Frühstück zu zweit, einmal im Monat."]}},
+ en:{
+  partner:{s:["Cook a three-course dinner by candlelight together. Each of you secretly takes one course.","Write each other a short love letter and read it aloud over breakfast."],
+    w:["Dance to your playlist from when you first met tonight. The living room counts.","Go on a spontaneous date: at every crossing, a coin decides where to go."],
+    e:["Go for a walk without phones and take turns answering: What do I need from you right now?","Plan a day where only what matters most to the other happens. You just got the ideas."]},
+  freunde:{s:["Show each other a favourite place the other doesn't know yet.","Look through old photos together and pick your favourite moment."],
+    w:["Try a sport neither of you can do: bouldering, table tennis or stand-up paddling.","Challenge each other: mini golf, a bike ride or a 5k run with a small bet."],
+    e:["Take an evening for a long talk: each of you shares a goal the other could help with.","Go on a long hike and talk about what's really on your minds."]},
+  geschwister:{s:["Cook your favourite meal from childhood.","Visit a place from your childhood together."],
+    w:["Game night like in the old days, with exactly the board game that always ended in a fight.","Go to a climbing park or a go-kart track together."],
+    e:["Tell each other what you never actually thanked the other for.","Invent a sibling ritual, like a fixed phone call once a month."]},
+  eltern:{s:["Cook a family recipe together and write it down.","Look through old photo albums together and tell each other the stories behind them."],
+    w:["Teach each other something: a phone trick in exchange for an old family recipe.","Go on a trip like you used to: zoo, swimming pool or ice cream parlour."],
+    e:["Ask each other questions you've never asked: What was I like as a child? What do you wish for me?","Agree on a ritual: breakfast for two, once a month."]}}};
+IDEEN.de.grosseltern=IDEEN.de.eltern;IDEEN.en.grosseltern=IDEEN.en.eltern;
+const CAT_WORD={de:{s:"liebevolle",w:"lustige",e:"tiefgründige"},en:{s:"loving",w:"funny",e:"deep"}};
+const HEAD={de:{hoch:"Herzensleser!",mittel:"Gute Spur!",neu:"Neues entdeckt!"},en:{hoch:"Heart readers!",mittel:"On the right track!",neu:"New discoveries!"}};
 const pickOne=a=>a[Math.floor(Math.random()*a.length)];
 
+let LAST=null;  // letztes Ergebnis, für das Teilen-Bild
 function endGame(){
-  const res=CUR.res||[], type=ENDING[CUR.g], ext=LENGTH[type][1];
+  const res=CUR.res||[], type=ENDING[CUR.g], ext=LENGTH[type][1], lg=S.lang;
+  const nm=r=>r.custom?r.n:nameFor(r.id,r.n);
   const close=res.filter(r=>Math.abs(r.av-r.gv)<=1).length, ratio=res.length?close/res.length:0;
   const tier=ratio>=.7?"hoch":ratio>=.4?"mittel":"neu";
   const surprise=[...res].sort((a,b)=>Math.abs(b.av-b.gv)-Math.abs(a.av-a.gv))[0];
@@ -1008,116 +1333,242 @@ function endGame(){
   if(!M.nr){S.session=null;save()}
 
   let body="",speakText="";
-  const topLine=i=>{const t=tops[i];if(!t)return "";const p=CUR.P[i];return `<div class="find">${thumb(t)}<div><b>Ganz oben bei ${esc(p.nom)}: ${esc(t.n)}</b><span>${t.av} von 5 Herzen</span></div></div>`};
+  LAST={type,tier,close,total:res.length,A,B,head:HEAD[lg][tier]};
+  const topLine=i=>{const t=tops[i];if(!t)return "";const p=CUR.P[i];return `<div class="find">${thumb(t)}<div><b>${L("Ganz oben bei","Top for")} ${esc(p.nom)}: ${esc(nm(t))}</b><span>${L(`${t.av} von 5 Herzen`,`${t.av} of 5 hearts`)}</span></div></div>`};
 
   if(type==="spruch"){
-    const sp=pickOne(SPRUCH[tier]);
+    const sp=pickOne(SPRUCH[lg][tier]);
     const kid=CUR.asym?CUR.younger:null, t=kid!=null?tops[kid]:null;
-    const mission=t?` Herz-Mission für heute: ${t.n}!`:"";
-    speakText=sp+mission;
+    speakText=sp+(t?L(` Herz-Mission für heute: ${nm(t)}!`,` Heart mission for today: ${nm(t)}!`):"");
+    LAST.text=sp;LAST.sub=t?L(`Herz-Mission: ${nm(t)}`,`Heart mission: ${nm(t)}`):"";
     body=`<div class="quote">${esc(sp)}</div>
-      ${t?`<div class="find">${thumb(t)}<div><b>Herz-Mission für heute: ${esc(t.n)}</b><span>Das hat ${esc(CUR.P[kid].nom)} heute am meisten bedeutet.</span></div></div>`:[0,1].map(topLine).join("")}`;
+      ${t?`<div class="find">${thumb(t)}<div><b>${L("Herz-Mission für heute","Heart mission for today")}: ${esc(nm(t))}</b><span>${L(`Das hat ${esc(CUR.P[kid].nom)} heute am meisten bedeutet.`,`That meant the most to ${esc(CUR.P[kid].nom)} today.`)}</span></div></div>`:[0,1].map(topLine).join("")}`;
   }else if(type==="meme"){
-    const [mt,mb]=pickOne(MEME_END[tier]);
-    const t=tops[CUR.asym?CUR.younger:1];
-    body=`<div class="meme"><span class="mt">${esc(mt)}</span>${iconSvg(tier==="hoch"?"star":tier==="mittel"?"summit":"sun",1.4)}<span class="mb">${esc(mb)}</span></div>
-      ${t?`<p class="hint">Fun Fact: Am meisten bedeutet heute „${esc(t.n)}“.</p>`:""}`;
+    const [mt,mb]=pickOne(MEME_END[lg][tier]);
+    const t=tops[CUR.asym?CUR.younger:1], icon=tier==="hoch"?"star":tier==="mittel"?"summit":"sun";
+    LAST.mt=mt;LAST.mb=mb;LAST.icon=icon;LAST.sub=t?L(`Am meisten bedeutet: ${nm(t)}`,`Means the most: ${nm(t)}`):"";
+    body=`<div class="meme"><span class="mt">${esc(mt)}</span>${iconSvg(icon,1.4)}<span class="mb">${esc(mb)}</span></div>
+      ${t?`<p class="hint">${L(`Fun Fact: Am meisten bedeutet heute „${esc(nm(t))}“.`,`Fun fact: “${esc(nm(t))}” means the most today.`)}</p>`:""}`;
     speakText=mt+". "+mb;
   }else{
     const avg=k=>{const l=res.filter(r=>(r.c||"s")===k);return l.length?l.reduce((n,r)=>n+r.av,0)/l.length:0};
     const cat=["s","w","e"].sort((a,b)=>avg(b)-avg(a)||Math.random()-.5)[0];
-    const set=IDEEN[CUR.rel]||IDEEN.freunde, idee=pickOne(set[cat]);
-    body=`<div class="idea"><span class="who-label">Eure Idee für diese Woche</span><p>${esc(idee)}</p>
-      <span class="hint">Weil euch heute vor allem ${CAT_WORD[cat]} Momente viel bedeutet haben.</span></div>
+    const set=IDEEN[lg][CUR.rel]||IDEEN[lg].freunde, idee=pickOne(set[cat]);
+    LAST.text=idee;LAST.sub=L("Unsere Idee für diese Woche","Our idea for this week");
+    body=`<div class="idea"><span class="who-label">${L("Eure Idee für diese Woche","Your idea for this week")}</span><p>${esc(idee)}</p>
+      <span class="hint">${L(`Weil euch heute vor allem ${CAT_WORD.de[cat]} Momente viel bedeutet haben.`,`Because ${CAT_WORD.en[cat]} moments meant the most to you today.`)}</span></div>
       ${[0,1].map(topLine).join("")}`;
-    speakText="Eure Idee für diese Woche: "+idee;
+    speakText=L("Eure Idee für diese Woche: ","Your idea for this week: ")+idee;
   }
-  const head={hoch:"Herzensleser!",mittel:"Gute Spur!",neu:"Neues entdeckt!"}[tier];
   show(`
   <div class="duo"><span class="face">${A.av}</span><span class="face">${B.av}</span></div>
-  <div class="say"><h2>${head}</h2>${sayBtn(speakText)}</div>
-  <p class="hint">${close} von ${res.length} Fragen fast gleich eingeschätzt${surprise&&Math.abs(surprise.av-surprise.gv)>=2?` · größte Überraschung: ${esc(surprise.n)}`:""}</p>
+  <div class="say"><h2>${HEAD[lg][tier]}</h2>${sayBtn(speakText)}</div>
+  <p class="hint">${L(`${close} von ${res.length} Fragen fast gleich eingeschätzt`,`${close} of ${res.length} questions guessed almost the same`)}${surprise&&Math.abs(surprise.av-surprise.gv)>=2?L(` · größte Überraschung: ${esc(nm(surprise))}`,` · biggest surprise: ${esc(nm(surprise))}`):""}</p>
   ${body}
   <div class="push">
-    ${!M.nr||M.host?`<button class="big soft" id="more">${PLUS}<span>${ext} Fragen mehr</span></button>`:`<p class="hint">Verlängern kann das Gerät, das den Code erstellt hat.</p>`}
-    <button class="big primary" id="done">${CHECK}<span>Fertig</span></button>
+    <button class="big soft" id="share">${SHARE}<span>${L("Ergebnis teilen","Share result")}</span></button>
+    ${!M.nr||M.host?`<button class="big soft" id="more">${PLUS}<span>${L(`${ext} Fragen mehr`,`${ext} more questions`)}</span></button>`:`<p class="hint">${L("Verlängern kann das Gerät, das den Code erstellt hat.","The device that created the code can extend the game.")}</p>`}
+    <button class="big primary" id="done">${CHECK}<span>${L("Fertig","Done")}</span></button>
   </div>`);
   speak(speakText);
   if(tier==="hoch")burst(26);
+  $("#share").onclick=shareResult;
   const more=$("#more");
   if(more)more.onclick=()=>{CUR.total+=ext;if(M.nr){newRound()}else{S.session={P:CUR.P.map(slim),rel:CUR.rel,n:CUR.n,total:CUR.total,res:CUR.res};save();start()}};
   $("#done").onclick=()=>home();
 }
 
 /* =========================================================
-   Zwei Geräte: gleicher Code → gleicher Raum.
-   Jedes Gerät teilt nur seinen eigenen Zustand (presence).
+   Teilen: Ergebnis als Bild (1080 × 1350, Instagram-/WhatsApp-tauglich)
    ========================================================= */
+function wrapText(ctx,text,x,y,maxW,lh,maxLines){
+  const words=String(text).split(" ");let line="",lines=[];
+  for(const w of words){const t=line?line+" "+w:w;if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w}else line=t}
+  if(line)lines.push(line);
+  lines=lines.slice(0,maxLines);
+  lines.forEach((l,i)=>ctx.fillText(l,x,y+i*lh));
+  return y+lines.length*lh;
+}
+function drawHeart(ctx,x,y,s,color){
+  ctx.save();ctx.translate(x,y);ctx.scale(s/24,s/24);ctx.fillStyle=color;ctx.fill(new Path2D(HEART));ctx.restore();
+}
+async function makeShareImage(){
+  const W=1080,H=1350,c=document.createElement("canvas");c.width=W;c.height=H;
+  const x=c.getContext("2d");
+  try{await document.fonts.load('700 60px "Fredoka"');await document.fonts.load('60px "Anton"')}catch(e){}
+  const F=(w,s)=>`${w} ${s}px "Fredoka", ui-rounded, system-ui, sans-serif`;
+  x.fillStyle="#F4F1E8";x.fillRect(0,0,W,H);
+  // Kopf: Logo
+  x.fillStyle="#FDD602";x.beginPath();x.roundRect(80,80,96,96,24);x.fill();
+  x.fillStyle="#262625";x.font=F(700,56);x.textBaseline="middle";x.fillText("mBond",200,130);
+  drawHeart(x,104,108,48,"#FF6B5B");
+  // Gesichter
+  x.textAlign="center";x.textBaseline="middle";x.font='140px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  x.fillStyle="#FFFCF5";x.beginPath();x.arc(410,360,110,0,7);x.fill();x.beginPath();x.arc(670,360,110,0,7);x.fill();
+  x.fillStyle="#262625";x.fillText(LAST.A.av,410,368);x.fillText(LAST.B.av,670,368);
+  drawHeart(x,510,300,60,"#FF6B5B");
+  // Überschrift + Zahl
+  x.font=F(700,92);x.fillText(LAST.head,W/2,560);
+  x.font=F(500,40);x.fillStyle="#655D53";
+  x.fillText(L(`${LAST.close} von ${LAST.total} Fragen fast gleich eingeschätzt`,`${LAST.close} of ${LAST.total} questions guessed almost the same`),W/2,640);
+  // Hauptteil
+  if(LAST.type==="meme"){
+    x.fillStyle="#2A2D33";x.beginPath();x.roundRect(140,700,800,520,36);x.fill();
+    x.font='72px "Anton", Impact, "Arial Black", sans-serif';x.lineJoin="round";x.lineWidth=10;
+    const meme=(t,y)=>{const words=t.toUpperCase();x.strokeStyle="#000";x.fillStyle="#fff";
+      const lines=[];let line="";for(const w of words.split(" ")){const tt=line?line+" "+w:w;if(x.measureText(tt).width>720&&line){lines.push(line);line=w}else line=tt}lines.push(line);
+      lines.slice(0,2).forEach((l,i)=>{x.strokeText(l,W/2,y+i*80);x.fillText(l,W/2,y+i*80)})};
+    drawHeart(x,W/2-80,880,160,"#FF6B5B");
+    meme(LAST.mt,770);meme(LAST.mb,1110);
+  }else{
+    x.fillStyle=LAST.type==="idee"?"#FFFCF5":"#FBDCD5";x.beginPath();x.roundRect(110,700,860,500,40);x.fill();
+    if(LAST.type==="idee"){x.strokeStyle="#FFC629";x.lineWidth=6;x.stroke()}
+    x.fillStyle="#262625";x.font=F(600,LAST.text.length>110?44:52);
+    wrapText(x,LAST.text,W/2,LAST.sub?820:860,760,66,6);
+    if(LAST.sub){x.font=F(600,36);x.fillStyle="#655D53";x.fillText(LAST.sub,W/2,1150)}
+  }
+  x.font=F(500,32);x.fillStyle="#655D53";x.fillText(L("Kommt meine Liebe so an, wie ich sie meine?","Does my love land the way I mean it?"),W/2,1280);
+  return new Promise(r=>c.toBlob(r,"image/png"));
+}
+async function shareResult(){
+  const btn=$("#share");btn.disabled=true;
+  try{
+    const blob=await makeShareImage(), name="mbond-ergebnis.png";
+    const file=new File([blob],name,{type:"image/png"});
+    const text=L(`Wir haben mBond gespielt: ${LAST.head}`,`We played mBond: ${LAST.head}`);
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],title:"mBond",text});btn.disabled=false;return}catch(e){if(e&&e.name==="AbortError"){btn.disabled=false;return}}
+    }
+    const dl=await window.claude?.use?.("downloads").catch(()=>null);
+    if(dl){try{await dl.save({filename:name,data:blob});btn.disabled=false;return}catch(e){}}
+    // Fallback: Bild anzeigen, lange drücken zum Speichern
+    const url=URL.createObjectURL(blob);
+    const ov=document.createElement("div");ov.className="share-ov";
+    ov.innerHTML=`<div class="share-box"><img src="${url}" alt="${esc(LAST.head)}"><p class="hint">${L("Bild lange drücken, um es zu speichern oder zu teilen.","Long-press the image to save or share it.")}</p><button class="big primary" id="ovc">${CHECK}<span>${L("Schließen","Close")}</span></button></div>`;
+    document.body.appendChild(ov);ov.querySelector("#ovc").onclick=()=>{ov.remove();URL.revokeObjectURL(url)};
+  }finally{btn.disabled=false}
+}
+
+/* =========================================================
+   Zwei Geräte: eine Verbindungsschicht, zwei Wege
+   1. In Claude: der geteilte Raum der Seite (claude.use("room"))
+   2. Eigenständig (GitHub): direkte Gerät-zu-Gerät-Verbindung (WebRTC über PeerJS).
+      Im selben WLAN fließen die Daten direkt im Heimnetz, aus der Ferne über das Internet.
+      Für schwierige Netze (Mobilfunk, Firmen-WLAN) kann unten ein TURN-Server eingetragen werden.
+   ========================================================= */
+const PEER_CONFIG={
+  prefix:"mbond-app-",
+  iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:global.stun.twilio.com:3478"}
+    /* Fern-Variante für schwierige Netze: eigenen TURN-Server ergänzen, z. B.
+       {urls:"turn:DEIN-SERVER:3478",username:"…",credential:"…"} */]
+};
 let roomApi=null, roomTried=false;
 (async()=>{try{roomApi=await window.claude?.use?.("room")||null}catch(e){roomApi=null}roomTried=true})();
+
+function peerJoin(code,host){
+  return new Promise((res,rej)=>{
+    const id=PEER_CONFIG.prefix+code, me={}, hs=[];let other=null, conn=null, done=false;
+    const peers=()=>{const a=[{peer:"me",sameTab:true,presence:me}];if(conn&&other)a.push({peer:"other",sameTab:false,presence:other});return a};
+    const fire=()=>{const p=peers();hs.forEach(h=>setTimeout(()=>h({peers:p}),0))};
+    const wire=c=>{conn=c;
+      c.on("data",d=>{if(d&&d.t==="p"){other=d.p;fire()}});
+      c.on("open",()=>{c.send({t:"p",p:me});fire()});
+      c.on("close",()=>{other=null;conn=null;fire()});};
+    const api={
+      presence:async p=>{for(const k in p){if(p[k]===null)delete me[k];else me[k]=p[k]}if(conn&&conn.open)conn.send({t:"p",p:me});fire()},
+      onPeers:h=>{hs.push(h);fire();return()=>{}},
+      peers,
+      leave:async()=>{try{peer.destroy()}catch(e){}}
+    };
+    const opts={config:{iceServers:PEER_CONFIG.iceServers}};
+    const peer=host?new Peer(id,opts):new Peer(opts);
+    const fail=e=>{if(!done){done=true;clearTimeout(timer);try{peer.destroy()}catch(x){}rej(e)}};
+    const timer=setTimeout(()=>fail({type:"timeout"}),15000);
+    peer.on("error",e=>fail(e));
+    peer.on("open",()=>{
+      if(host){peer.on("connection",c=>{if(conn&&conn.open){c.close();return}wire(c)});done=true;clearTimeout(timer);res(api)}
+      else{const c=peer.connect(id,{reliable:true});wire(c);c.on("open",()=>{if(!done){done=true;clearTimeout(timer);res(api)}})}
+    });
+  });
+}
+const transport=()=>roomApi?{kind:"claude",join:code=>roomApi.join("mbond-"+code)}
+  :(window.Peer?{kind:"direct",join:(code,host)=>peerJoin(code,host)}:null);
+
 let M={nr:null};
 const DIGIT_BTN=d=>`<button class="key" data-d="${d}">${d}</button>`;
 function leaveRoom(){if(M.nr){try{M.unsub&&M.unsub();M.nr.leave()}catch(e){}}M={nr:null}}
 const _home=home; home=function(){leaveRoom();_home()};
+const newCode=()=>String(1000+Math.floor(Math.random()*9000));
 
 function twoStart(){
-  if(!roomApi){
-    if(!roomTried){show(`<div class="empty"><span class="e">📡</span><h2>Verbinde …</h2></div>`);setTimeout(twoStart,800);return}
-    show(`<div class="empty"><span class="e">📡</span><h2>Hier nicht verfügbar</h2>
-      <p class="hint">Der Zwei-Geräte-Modus ist in dieser Version noch nicht verfügbar. Spielt einfach zusammen auf einem Gerät und reicht es weiter.</p></div>
-      <div class="push"><button class="big primary" id="back">${ARROW}<span>Auf einem Gerät spielen</span></button></div>`);
+  const tr=transport();
+  if(!tr){
+    if(!roomTried){show(`<div class="empty"><span class="e">📡</span><h2>${L("Verbinde …","Connecting …")}</h2></div>`);setTimeout(twoStart,800);return}
+    show(`<div class="empty"><span class="e">📡</span><h2>${L("Hier nicht verfügbar","Not available here")}</h2>
+      <p class="hint">${L("Für zwei Geräte braucht es eine Internetverbindung. Spielt so lange zusammen auf einem Gerät.","Two devices need an internet connection. Play together on one device for now.")}</p></div>
+      <div class="push"><button class="big primary" id="back">${ARROW}<span>${L("Auf einem Gerät spielen","Play on one device")}</span></button></div>`);
     $("#back").onclick=()=>setup(start);return;
   }
   show(`
   <div class="hero"><div class="duo"><div class="face">📱</div><div class="face">📱</div></div></div>
-  <div class="say"><h2>Zwei Geräte</h2></div>
-  <p class="hint">Jeder antwortet auf seinem eigenen Gerät. Nichts wird verraten, bis beide fertig sind.</p>
+  <div class="say"><h2>${L("Zwei Geräte","Two devices")}</h2></div>
+  <p class="hint">${tr.kind==="direct"
+    ?L("Jeder antwortet auf seinem eigenen Gerät, ob im selben WLAN oder aus der Ferne. Nichts wird verraten, bis beide fertig sind.","Everyone answers on their own device, on the same Wi-Fi or far apart. Nothing is revealed until both are done.")
+    :L("Jeder antwortet auf seinem eigenen Gerät. Nichts wird verraten, bis beide fertig sind.","Everyone answers on their own device. Nothing is revealed until both are done.")}</p>
   <div class="push">
-    <button class="big primary" id="mk">${PLUS}<span>Code erstellen</span></button>
-    <button class="big soft" id="in"><span>Code eingeben</span></button>
+    <button class="big primary" id="mk">${PLUS}<span>${L("Code erstellen","Create code")}</span></button>
+    <button class="big soft" id="in"><span>${L("Code eingeben","Enter code")}</span></button>
   </div>`);
   $("#mk").onclick=()=>pickPerson(0,[],twoWho);
   $("#in").onclick=twoEnter;
 }
 function twoWho(){
   show(`
-  <div class="say"><h2>Wer spielt auf diesem Gerät?</h2></div>
-  <div class="who">${CUR.P.map((p,i)=>`<button class="who-box" data-i="${i}"><span class="face">${p.av}</span><span class="who-label">${esc(p.anon?stageOf(p.stage)[2]:p.name)}</span></button>`).join("")}</div>`);
-  const code=String(1000+Math.floor(Math.random()*9000));
-  stage.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>connect(code,true,+b.dataset.i));
+  <div class="say"><h2>${L("Wer spielt auf diesem Gerät?","Who's playing on this device?")}</h2></div>
+  <div class="who">${CUR.P.map((p,i)=>`<button class="who-box" data-i="${i}"><span class="face">${p.av}</span><span class="who-label">${esc(p.anon?stageName(p.stage):p.name)}</span></button>`).join("")}</div>`);
+  stage.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>connect(newCode(),true,+b.dataset.i,0));
 }
 function twoEnter(){
   let code="";
   const draw=()=>{
     show(`
-    <div class="say"><h2>Code eingeben</h2></div>
+    <div class="say"><h2>${L("Code eingeben","Enter code")}</h2></div>
     <div class="code">${[0,1,2,3].map(i=>`<span>${code[i]||""}</span>`).join("")}</div>
-    <div class="keypad">${[1,2,3,4,5,6,7,8,9].map(DIGIT_BTN).join("")}<span></span>${DIGIT_BTN(0)}<button class="key" data-d="del" aria-label="Löschen">⌫</button></div>`);
+    <div class="keypad">${[1,2,3,4,5,6,7,8,9].map(DIGIT_BTN).join("")}<span></span>${DIGIT_BTN(0)}<button class="key" data-d="del" aria-label="${L("Löschen","Delete")}">⌫</button></div>`);
     stage.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{
       const d=b.dataset.d;
       if(d==="del")code=code.slice(0,-1);else if(code.length<4)code+=d;
-      if(code.length===4)connect(code,false,null);else draw();
+      if(code.length===4)connect(code,false,null,0);else draw();
     });
   };
   draw();
 }
 function waiting(){
   show(`
-  <div class="say"><h2>${M.host?"Euer Code":"Verbunden"}</h2></div>
+  <div class="say"><h2>${M.host?L("Euer Code","Your code"):L("Verbinde …","Connecting …")}</h2></div>
   <div class="code big-code">${M.code.split("").map(c=>`<span>${c}</span>`).join("")}</div>
-  <p class="hint">${M.host?"Auf dem zweiten Gerät „Zwei Geräte“ öffnen und diesen Code eingeben.":"Warte auf das andere Gerät …"}</p>
+  <p class="hint">${M.host?L("Auf dem zweiten Gerät „Zwei Geräte“ öffnen und diesen Code eingeben.","On the second device, open “Two devices” and enter this code."):L("Warte auf das andere Gerät …","Waiting for the other device …")}</p>
   <div class="empty" style="flex:0"><div class="mini pulse">${heart(26,"on")}${heart(32,"on")}${heart(26,"on")}</div></div>`);
 }
-async function connect(code,host,role){
+function connFail(msg){
+  show(`<div class="empty"><span class="e">📡</span><h2>${L("Keine Verbindung","No connection")}</h2><p class="hint">${msg}</p></div>
+    <div class="push"><button class="big primary" id="re">${ARROW}<span>${L("Nochmal","Try again")}</span></button></div>`);
+  $("#re").onclick=twoStart;
+}
+async function connect(code,host,role,tries){
   leaveRoom();
   M={nr:null,code,host,role,round:null,my:null,next:null,shown:0};
   waiting();
-  try{M.nr=await roomApi.join("mbond-"+code)}
+  try{M.nr=await transport().join(code,host)}
   catch(e){
-    show(`<div class="empty"><span class="e">📡</span><h2>Keine Verbindung</h2><p class="hint">Das hat gerade nicht geklappt. Prüft die Internetverbindung und versucht es noch einmal.</p></div>
-      <div class="push"><button class="big primary" id="re">${ARROW}<span>Nochmal</span></button></div>`);
-    $("#re").onclick=twoStart;return;
+    const t=e&&e.type;
+    if(host&&t==="unavailable-id"&&tries<4)return connect(newCode(),true,role,tries+1);
+    connFail(t==="peer-unavailable"
+      ?L("Zu diesem Code gibt es gerade kein Spiel. Prüft die Ziffern und ob das andere Gerät den Code noch anzeigt.","There's no game with this code right now. Check the digits and that the other device still shows the code.")
+      :L("Das hat gerade nicht geklappt. Prüft die Internetverbindung beider Geräte und versucht es noch einmal.","That didn't work. Check the internet connection on both devices and try again."));
+    return;
   }
+  if(host)waiting();
   push();
   M.unsub=M.nr.onPeers(ch=>sync(ch.peers),()=>{});
 }
@@ -1151,19 +1602,19 @@ function newRound(){
   if(CUR.n>=CUR.total){M.round={...M.round,end:true};push();endGame();return}
   CUR.n++;
   const n=CUR.n, ai=nextAnswerer(n), g=drawGesture(ai);
-  M.round={n,total:CUR.total,ai,g:{id:g.id,e:g.e||"",n:g.n,p:g.p,i:g.i||"",mt:g.mt||"",mb:g.mb||"",c:g.c||"s"}};
+  M.round={n,total:CUR.total,ai,g:{id:g.id,e:g.e||"",n:g.n,p:g.p,i:g.i||"",mt:g.mt||"",mb:g.mb||"",c:g.c||"s",custom:!!g.custom}};
   M.my=null;M.next=null;push();mpAsk();
 }
 async function mpAsk(){
   const r=M.round, guess=M.role!==r.ai;
-  const v=await askScreen(guess?"guess":"answer",CUR.P[M.role],r.g,r.ai,false,`<div class="link-pill">📱 ${M.code} · Frage ${r.n} von ${r.total}</div>`);
+  const v=await askScreen(guess?"guess":"answer",CUR.P[M.role],r.g,r.ai,false,progress(r.n,r.total,M.code));
   M.my={n:r.n,v};push();
   const other=CUR.P[1-M.role];
   show(`
   <div class="handoff" style="cursor:default">
     <div class="face">${other.av}</div>
-    <span class="h2like">Gleich geht's los!</span>
-    <p class="hint">Deine Antwort ist sicher. Wir warten, bis ${other.anon?"die andere Person":esc(other.name)} fertig ist.</p>
+    <span class="h2like">${L("Gleich geht's los!","Almost there!")}</span>
+    <p class="hint">${L(`Deine Antwort ist sicher. Wir warten, bis ${other.anon?"die andere Person":esc(other.name)} fertig ist.`,`Your answer is safe. Waiting for ${other.anon?"the other person":esc(other.name)} to finish.`)}</p>
     <div class="mini pulse">${heart(22,"on")}${heart(28,"on")}${heart(22,"on")}</div>
   </div>`);
   sync(M.nr.peers());
@@ -1174,7 +1625,7 @@ function mpReveal(myV,oV){
   reveal(()=>{
     if(M.host){newRound();return}
     M.next=M.round.n;push();
-    const a=$("#again");a.disabled=true;a.style.opacity=.5;a.querySelector("span").textContent="Warte auf das andere Gerät …";
+    const a=$("#again");a.disabled=true;a.querySelector("span").textContent=L("Warte auf das andere Gerät …","Waiting for the other device …");
   });
   setTimeout(()=>{const o=$("#open");if(o)o.click()},500);
 }

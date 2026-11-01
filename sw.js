@@ -1,8 +1,8 @@
 // mBond – Offline-Speicher
 // Online immer die neueste Version laden, offline aus dem Speicher starten.
 // Bei Änderungen an der App die Versionsnummer erhöhen.
-const CACHE='mbond-v1';
-const FILES=['./','index.html','manifest.webmanifest','icon.png','icon-512.png'];
+const CACHE='mbond-v2';
+const FILES=['./','index.html','manifest.webmanifest','icon.png','icon-512.png','peerjs.min.js'];
 
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()));

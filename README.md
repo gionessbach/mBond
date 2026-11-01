@@ -12,4 +12,4 @@ Web-App für Handy und Tablet: über GitHub Pages öffnen und „Zum Home-Bildsc
 - Vorlesen für Kinder bis Grundschulalter
 - Freiwilliges Trinkgeld (nie bei Spielen mit Kindern), Dankeschön-Paket für Unterstützer
 
-Enthaltene Bibliotheken: PeerJS 1.5.5 (MIT), qrcode-generator 1.4.4 (MIT).
+Enthaltene Bibliotheken und Schriften: PeerJS 1.5.5 (MIT), qrcode-generator 1.4.4 (MIT), Fredoka und Anton (SIL Open Font License 1.1).

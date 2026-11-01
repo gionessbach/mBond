@@ -403,6 +403,14 @@ textarea#fbText:focus{outline:none;border-color:var(--heart)}
 .fb-sum{margin:0;white-space:pre-wrap;font-family:var(--body);font-size:14px;line-height:1.5;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;user-select:text;-webkit-user-select:text;max-height:40vh;overflow:auto}
 @media (min-width:700px) and (min-height:600px){.fb-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 
+.beta{display:inline-block;vertical-align:middle;font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--heart);color:#262625;border-radius:999px;padding:3px 10px;transform:translateY(-6px)}
+.beta-sm{font-size:11px;padding:2px 7px;transform:none}
+.title-beta{display:flex;align-items:center;gap:10px;justify-content:center}
+.title-beta .beta{transform:translateY(-8px)}
+.beta-note{margin:-4px 0 0;font-size:13px;color:var(--muted)}
+@media (min-width:700px) and (min-height:600px){.beta{font-size:18px}.beta-sm{font-size:12px}}
+
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{border-radius:16px;padding:8px 4px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:14px;line-height:1.1}
@@ -450,7 +458,7 @@ textarea#fbText:focus{outline:none;border-color:var(--heart)}
   <header>
     <div class="brand"><span class="mark"><svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" fill="#FDD602"/><path d="M96 140h190a40 40 0 0 1 40 40v84a40 40 0 0 1-40 40H170l-52 46v-46h-22a40 40 0 0 1-40-40v-84a40 40 0 0 1 40-40z" fill="none" stroke="#262625" stroke-width="30" stroke-linejoin="round" transform="translate(20 0)"/>
 <path d="M226 230h190a40 40 0 0 1 40 40v84a40 40 0 0 1-40 40h-22v46l-52-46H226a40 40 0 0 1-40-40v-84a40 40 0 0 1 40-40z" fill="#262625" />
-<path d="M12 21s-7.5-4.6-10-9.3C.4 8.6 2.1 4.5 6 4.1c2.3-.2 4.3 1.1 6 3.3 1.7-2.2 3.7-3.5 6-3.3 3.9.4 5.6 4.5 4 7.6C19.5 16.4 12 21 12 21z" transform="translate(262 252) scale(5.6)" fill="#FF6B5B"/></svg></span><span>mBond</span></div>
+<path d="M12 21s-7.5-4.6-10-9.3C.4 8.6 2.1 4.5 6 4.1c2.3-.2 4.3 1.1 6 3.3 1.7-2.2 3.7-3.5 6-3.3 3.9.4 5.6 4.5 4 7.6C19.5 16.4 12 21 12 21z" transform="translate(262 252) scale(5.6)" fill="#FF6B5B"/></svg></span><span>mBond</span><span class="beta beta-sm">Beta</span></div>
     <div class="spacer"></div>
     <button class="icon-btn" id="homeBtn" aria-label="Zum Start" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v9H4z"/></svg></button>
     <button class="icon-btn lang-btn" id="langBtn" aria-label="Switch to English">EN</button>
@@ -1210,7 +1218,8 @@ function home(){
   show(`
   <div class="hero">
     <svg viewBox="0 0 240 150" aria-hidden="true"><path d="${HEART}" transform="translate(18 12) scale(5.4)" fill="var(--accent)"/><path d="${HEART}" transform="translate(92 22) scale(5.4)" fill="var(--heart)" opacity=".92"/></svg>
-    <h1>mBond</h1>
+    <h1 class="title-beta">mBond <span class="beta">Beta</span></h1>
+    <p class="beta-note">${L("Testversion · Danke fürs Ausprobieren!","Test version · Thanks for trying it!")}</p>
     <p class="hint">${L("Kommt meine Liebe so an, wie ich sie meine?","Does my love land the way I mean it?")}</p>
     <button class="tiny" id="how">${L("So geht's","How it works")}</button>
     ${PREVIEW_ENTRY?`<button class="tiny dev-link" id="prev">🧪 ${L("Vorschau: Unterstützung","Preview: support")}</button>`:""}

@@ -240,6 +240,19 @@ button.who-box .face{width:84px;height:84px;font-size:50px}
 .intro-plus{width:72px;height:72px;border-radius:20px;background:var(--accent);color:#262625;display:grid;place-items:center}
 .intro-plus svg{width:38px;height:38px}
 
+/* Trinkgeld */
+.tip{background:var(--surface);border:1.5px solid var(--line);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.tip-head{display:flex;gap:12px;align-items:center}
+.tip-head b{font-family:var(--display);font-weight:600;font-size:17px;display:block}
+.tip-head span{font-size:14px;color:var(--muted);line-height:1.35}
+.tip-ic{font-size:28px;flex:none}
+.tip-amts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tip-amts .chip{padding:10px 4px;font-size:16px;flex-direction:row;justify-content:center}
+.tip-row{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.tip-go{min-height:52px;font-size:18px;text-decoration:none;color:#262625}
+.tip-go:hover{color:#262625}
+.tip-note{margin:0;font-size:12px;color:var(--muted);text-align:center}
+
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{border-radius:16px;padding:8px 4px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:14px;line-height:1.1}
@@ -1272,7 +1285,9 @@ function album(pid){
   :`<div class="empty"><span class="e">${cur.av}</span><h2>${L("Noch leer","Still empty")}</h2><p class="hint">${L(`Sobald ${esc(cur.name)} eine Frage beantwortet hat, steht hier, was am meisten bedeutet.`,`Once ${esc(cur.name)} has answered a question, you'll see here what matters most.`)}</p></div>`}
   ${nudge(L("Eigenes Bonding erstellen","Create your own bonding"),ownCount()?L(`${ownCount()} eigene schon dabei. Was fehlt noch?`,`${ownCount()} of your own so far. What's missing?`):L("Was macht nur ihr zwei miteinander?","What do only you two do together?"))}
   ${ownCount()?`<button class="tiny" id="mg">${L("Eigene Bondings verwalten","Manage your bondings")}</button>`:""}
+  ${S.rounds>=5?tipCard("album"):""}
   <div class="push"><button class="big primary" id="play">${ARROW}<span>${L("Spielen","Play")}</span></button></div>`);
+  wireTip();
   stage.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>album(b.dataset.p));
   wireNudge(()=>album(cur.id));
   if(ownCount())$("#mg").onclick=()=>manage(()=>album(cur.id));
@@ -1373,16 +1388,50 @@ function endGame(){
   <div class="say"><h2>${HEAD[lg][tier]}</h2></div>
   <p class="hint">${L(`${close} von ${res.length} Fragen fast gleich eingeschätzt`,`${close} of ${res.length} questions guessed almost the same`)}${surprise&&Math.abs(surprise.av-surprise.gv)>=2?L(` · größte Überraschung: ${esc(nm(surprise))}`,` · biggest surprise: ${esc(nm(surprise))}`):""}</p>
   ${body}
+  ${tier!=="neu"&&!S.tipOff&&!M.nr?tipCard("end"):""}
   <div class="push">
     <button class="big soft" id="share">${SHARE}<span>${L("Ergebnis teilen","Share result")}</span></button>
     ${!M.nr||M.host?`<button class="big soft" id="more">${PLUS}<span>${L(`${ext} Fragen mehr`,`${ext} more questions`)}</span></button>`:`<p class="hint">${L("Verlängern kann das Gerät, das den Code erstellt hat.","The device that created the code can extend the game.")}</p>`}
     <button class="big primary" id="done">${CHECK}<span>${L("Fertig","Done")}</span></button>
   </div>`);
   if(tier==="hoch")burst(26);
-  $("#share").onclick=shareResult;
+  $("#share").onclick=shareResult;wireTip();
   const more=$("#more");
   if(more)more.onclick=()=>{CUR.total+=ext;if(M.nr){newRound()}else{S.session={P:CUR.P.map(slim),rel:CUR.rel,n:CUR.n,total:CUR.total,res:CUR.res};save();start()}};
   $("#done").onclick=()=>home();
+}
+
+/* =========================================================
+   Trinkgeld über PayPal.Me – freiwillig, klein, nie während des Spiels
+   ========================================================= */
+const TIP={url:"https://www.paypal.me/lovethatapp",amounts:[1,2,5],preset:2};
+function tipCard(where){
+  if(!TIP.url)return "";
+  const sel=S.tipAmt||TIP.preset;
+  return `<div class="tip" id="tip">
+    <div class="tip-head"><span class="tip-ic" aria-hidden="true">☕</span><div><b>${L("Euch gefällt mBond?","Enjoying mBond?")}</b>
+      <span>${L("Ein kleines Trinkgeld hilft bei neuen Fragen und Illustrationen.","A small tip helps with new questions and illustrations.")}</span></div></div>
+    <div class="tip-amts" role="radiogroup" aria-label="${L("Betrag","Amount")}">
+      ${TIP.amounts.map(a=>`<button class="chip" role="radio" data-amt="${a}" aria-checked="${a===sel}" aria-pressed="${a===sel}">${a} €</button>`).join("")}
+      <button class="chip" role="radio" data-amt="0" aria-checked="false" aria-pressed="false">${L("Eigener","Custom")}</button>
+    </div>
+    <div class="tip-row">
+      <a class="big primary tip-go" id="tipGo" href="${TIP.url}/${sel}EUR" target="_blank" rel="noopener">${L(`${sel} € geben`,`Give ${sel} €`)}</a>
+      ${where==="end"?`<button class="tiny" id="tipOff">${L("Nicht mehr anzeigen","Don't show again")}</button>`:""}
+    </div>
+    <p class="tip-note">${L("Freiwillig über PayPal. In mBond bleibt alles kostenlos.","Voluntary via PayPal. Everything in mBond stays free.")}</p>
+  </div>`;
+}
+function wireTip(){
+  const box=$("#tip");if(!box)return;
+  const go=$("#tipGo");
+  box.querySelectorAll("[data-amt]").forEach(b=>b.onclick=()=>{
+    const a=+b.dataset.amt;
+    box.querySelectorAll("[data-amt]").forEach(x=>{x.setAttribute("aria-pressed",x===b);x.setAttribute("aria-checked",x===b)});
+    if(a){S.tipAmt=a;save();go.href=`${TIP.url}/${a}EUR`;go.textContent=L(`${a} € geben`,`Give ${a} €`)}
+    else{go.href=TIP.url;go.textContent=L("Betrag selbst wählen","Choose amount")}
+  });
+  const off=$("#tipOff");if(off)off.onclick=()=>{S.tipOff=true;save();box.remove()};
 }
 
 /* =========================================================

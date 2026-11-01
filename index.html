@@ -422,6 +422,21 @@ textarea#fbText:focus{outline:none;border-color:var(--heart)}
 .list.rel-list{overflow:visible;flex:none}
 .rel-cat{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;opacity:.7;margin:14px 4px 6px}
 .rel-cat:first-of-type{margin-top:6px}
+.trait-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.trait-row .chip{padding:10px 4px;font-size:14px;text-align:center;min-width:0;overflow-wrap:anywhere}
+.trait-row .chip .st-ic{font-size:24px}
+.trait-row .chip[aria-pressed="true"]{border-color:var(--heart);background:var(--heart-soft)}
+.trait-hint{margin:-2px 0 6px;font-size:13px;opacity:.7}
+.near-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:8px}
+.near-opt{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:12px 2px;display:grid;place-items:center;cursor:pointer}
+.near-opt:active{transform:scale(.95);border-color:var(--heart)}
+.near-opt svg,.near-reveal svg{max-width:100%;height:auto}
+.near-opt .c1,.near-reveal .c1{fill:var(--accent);fill-opacity:.55;stroke:currentColor;stroke-width:1.6}
+.near-opt .c2,.near-reveal .c2{fill:var(--heart);fill-opacity:.45;stroke:currentColor;stroke-width:1.6}
+.near-ends{display:flex;justify-content:space-between;font-size:13px;opacity:.7;margin:6px 4px 0}
+.near-reveal{display:flex;justify-content:center;gap:22px;margin:14px 0}
+.nr-col{display:flex;flex-direction:column;align-items:center;gap:10px}
+.nr-col .face{width:64px;height:64px;font-size:38px}
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{border-radius:16px;padding:8px 4px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:14px;line-height:1.1}
@@ -1014,42 +1029,56 @@ const rank=s=>STAGES.findIndex(x=>x[0]===s);
 const stageOf=s=>STAGES.find(x=>x[0]===s)||STAGES[4];
 const stageName=s=>{const x=stageOf(s);return EN_ON()?x[3]:x[2]};
 /* Beziehungen
-   kind: asym = eine Seite kümmert sich/lehrt · sym = auf Augenhöhe · ask = zweiter Schritt: Wie fühlt es sich an?
-   o/y: Rollen für anonyme Mitspielende [Nominativ, Dativ] je Sprache · who: Frage, wenn das Alter die Rollen nicht klärt */
+   Die Beziehungsart setzt nur Voreinstellungen. Was wirklich zählt, sind drei Merkmale:
+   Rollen (wer kümmert sich um wen · nach Wish, Deutsch & Kaplan 1976 / Fiske), Rahmen (privat ↔ Arbeit/Schule/Verein)
+   und Nähe (Kreise-Bild nach Aron, Aron & Smollan 1992, wird in der Aufwärmrunde von beiden heimlich geschätzt).
+   care: true = Ältere kümmern sich · "age" = nur bei Altersunterschied · false = Augenhöhe · frame: "w" = Arbeit/Schule/Verein
+   o/y: Rollen für anonyme Mitspielende [Nominativ, Dativ] je Sprache */
 const REL_CATS=[["fam","Familie","Family"],["frei","Freundschaft & Umfeld","Friends & neighbours"],["arbeit","Lernen & Arbeit","Learning & work"]];
 const RELS=[
- {k:"eltern",cat:"fam",ic:"👨‍👧",de:"Eltern & Kind",en:"Parent & child",kind:"asym",home:true,idea:"eltern",
-   o:{de:["Mama oder Papa","Mama oder Papa"],en:["Mum or Dad","Mum or Dad"]},y:{de:["dein Kind","deinem Kind"],en:["your child","your child"]},who:["Wer ist Mama oder Papa?","Who is the parent?"]},
- {k:"stief",cat:"fam",ic:"🏡",de:"Bonus-Eltern & Bonuskind",en:"Step-parent & stepchild",sub:["Stief-, Pflege- oder Patchworkfamilie","Step, foster or blended family"],kind:"ask",home:true,idea:"eltern",
-   o:{de:["Bonus-Mama oder -Papa","Bonus-Mama oder -Papa"],en:["your step-parent","your step-parent"]},y:{de:["dein Bonuskind","deinem Bonuskind"],en:["your stepchild","your stepchild"]},who:["Wer ist Bonus-Mama oder -Papa?","Who is the step-parent?"]},
- {k:"grosseltern",cat:"fam",ic:"👵",de:"Großeltern & Enkel",en:"Grandparent & grandchild",kind:"asym",idea:"eltern",
-   o:{de:["Oma oder Opa","Oma oder Opa"],en:["Grandma or Grandpa","Grandma or Grandpa"]},y:{de:["dein Enkelkind","deinem Enkelkind"],en:["your grandchild","your grandchild"]},who:["Wer ist Oma oder Opa?","Who is the grandparent?"]},
- {k:"onkel",cat:"fam",ic:"🎈",de:"Tante/Onkel & Nichte/Neffe",en:"Aunt/uncle & niece/nephew",kind:"ask",idea:"eltern",
-   o:{de:["Tante oder Onkel","Tante oder Onkel"],en:["your aunt or uncle","your aunt or uncle"]},y:{de:["deine Nichte oder dein Neffe","deiner Nichte oder deinem Neffen"],en:["your niece or nephew","your niece or nephew"]},who:["Wer ist Tante oder Onkel?","Who is the aunt or uncle?"]},
- {k:"paten",cat:"fam",ic:"🌟",de:"Pate/Patin & Patenkind",en:"Godparent & godchild",kind:"ask",idea:"eltern",
-   o:{de:["Patentante oder -onkel","Patentante oder -onkel"],en:["your godparent","your godparent"]},y:{de:["dein Patenkind","deinem Patenkind"],en:["your godchild","your godchild"]},who:["Wer ist Pate oder Patin?","Who is the godparent?"]},
- {k:"schwieger",cat:"fam",ic:"💍",de:"Schwiegereltern & Schwiegerkind",en:"In-laws",sub:["Schwiegersohn oder -tochter","Son- or daughter-in-law"],kind:"ask",idea:"eltern",
-   o:{de:["Schwiegermama oder -papa","Schwiegermama oder -papa"],en:["your parent-in-law","your parent-in-law"]},y:{de:["dein Schwiegerkind","deinem Schwiegerkind"],en:["your son- or daughter-in-law","your son- or daughter-in-law"]},who:["Wer sind die Schwiegereltern?","Who is the parent-in-law?"]},
- {k:"partner",cat:"fam",ic:"💑",de:"Partner",en:"Partners",kind:"sym",idea:"partner"},
- {k:"geschwister",cat:"fam",ic:"👫",de:"Geschwister",en:"Siblings",kind:"sym",idea:"geschwister"},
- {k:"cousins",cat:"fam",ic:"🧩",de:"Cousins & Cousinen",en:"Cousins",kind:"sym",idea:"geschwister"},
- {k:"freunde",cat:"frei",ic:"🤝",de:"Freunde",en:"Friends",kind:"sym",idea:"freunde"},
- {k:"nachbarn",cat:"frei",ic:"🏘️",de:"Nachbarn",en:"Neighbours",kind:"sym",idea:"freunde"},
- {k:"lehrer",cat:"arbeit",ic:"🍎",de:"Lehrkraft & Schüler/in",en:"Teacher & student",kind:"asym",mode:"lern",idea:"lernen",
-   o:{de:["deine Lehrerin oder dein Lehrer","deiner Lehrerin oder deinem Lehrer"],en:["your teacher","your teacher"]},y:{de:["deine Schülerin oder dein Schüler","deiner Schülerin oder deinem Schüler"],en:["your student","your student"]},who:["Wer unterrichtet?","Who is the teacher?"]},
- {k:"trainer",cat:"arbeit",ic:"🏅",de:"Trainer/in & Schützling",en:"Coach & trainee",sub:["Sport, Musik, Hobby","Sports, music, hobbies"],kind:"asym",mode:"lern",idea:"lernen",
-   o:{de:["deine Trainerin oder dein Trainer","deiner Trainerin oder deinem Trainer"],en:["your coach","your coach"]},y:{de:["dein Schützling","deinem Schützling"],en:["your trainee","your trainee"]},who:["Wer trainiert?","Who is the coach?"]},
- {k:"ausbildung",cat:"arbeit",ic:"🛠️",de:"Ausbilder/in & Azubi",en:"Mentor & apprentice",sub:["auch Mentoring, Einarbeitung","also mentoring, onboarding"],kind:"asym",mode:"lern",idea:"lernen",
-   o:{de:["deine Ausbilderin oder dein Ausbilder","deiner Ausbilderin oder deinem Ausbilder"],en:["your mentor","your mentor"]},y:{de:["dein Azubi","deinem Azubi"],en:["your apprentice","your apprentice"]},who:["Wer bildet aus?","Who is the mentor?"]},
- {k:"kollegen",cat:"arbeit",ic:"💼",de:"Kolleginnen & Kollegen",en:"Colleagues",kind:"sym",team:true,idea:"kollegen"},
- {k:"chef",cat:"arbeit",ic:"🧭",de:"Führungskraft & Mitarbeiter/in",en:"Manager & team member",kind:"sym",team:true,idea:"kollegen"}
+ {k:"eltern",cat:"fam",ic:"👨‍👧",de:"Eltern & Kind",en:"Parent & child",care:true,home:true,idea:"eltern",
+   o:{de:["Mama oder Papa","Mama oder Papa"],en:["Mum or Dad","Mum or Dad"]},y:{de:["dein Kind","deinem Kind"],en:["your child","your child"]}},
+ {k:"stief",cat:"fam",ic:"🏡",de:"Bonus-Eltern & Bonuskind",en:"Step-parent & stepchild",sub:["Stief-, Pflege- oder Patchworkfamilie","Step, foster or blended family"],care:"age",home:true,idea:"eltern",
+   o:{de:["Bonus-Mama oder -Papa","Bonus-Mama oder -Papa"],en:["your step-parent","your step-parent"]},y:{de:["dein Bonuskind","deinem Bonuskind"],en:["your stepchild","your stepchild"]}},
+ {k:"grosseltern",cat:"fam",ic:"👵",de:"Großeltern & Enkel",en:"Grandparent & grandchild",care:true,idea:"eltern",
+   o:{de:["Oma oder Opa","Oma oder Opa"],en:["Grandma or Grandpa","Grandma or Grandpa"]},y:{de:["dein Enkelkind","deinem Enkelkind"],en:["your grandchild","your grandchild"]}},
+ {k:"onkel",cat:"fam",ic:"🎈",de:"Tante/Onkel & Nichte/Neffe",en:"Aunt/uncle & niece/nephew",care:"age",idea:"eltern",
+   o:{de:["Tante oder Onkel","Tante oder Onkel"],en:["your aunt or uncle","your aunt or uncle"]},y:{de:["deine Nichte oder dein Neffe","deiner Nichte oder deinem Neffen"],en:["your niece or nephew","your niece or nephew"]}},
+ {k:"paten",cat:"fam",ic:"🌟",de:"Pate/Patin & Patenkind",en:"Godparent & godchild",care:"age",idea:"eltern",
+   o:{de:["Patentante oder -onkel","Patentante oder -onkel"],en:["your godparent","your godparent"]},y:{de:["dein Patenkind","deinem Patenkind"],en:["your godchild","your godchild"]}},
+ {k:"schwieger",cat:"fam",ic:"💍",de:"Schwiegereltern & Schwiegerkind",en:"In-laws",sub:["Schwiegersohn oder -tochter","Son- or daughter-in-law"],care:"age",idea:"eltern",
+   o:{de:["Schwiegermama oder -papa","Schwiegermama oder -papa"],en:["your parent-in-law","your parent-in-law"]},y:{de:["dein Schwiegerkind","deinem Schwiegerkind"],en:["your son- or daughter-in-law","your son- or daughter-in-law"]}},
+ {k:"partner",cat:"fam",ic:"💑",de:"Partner",en:"Partners",care:false,idea:"partner"},
+ {k:"geschwister",cat:"fam",ic:"👫",de:"Geschwister",en:"Siblings",care:false,idea:"geschwister"},
+ {k:"cousins",cat:"fam",ic:"🧩",de:"Cousins & Cousinen",en:"Cousins",care:false,idea:"geschwister"},
+ {k:"freunde",cat:"frei",ic:"🤝",de:"Freunde",en:"Friends",care:false,idea:"freunde"},
+ {k:"nachbarn",cat:"frei",ic:"🏘️",de:"Nachbarn",en:"Neighbours",care:false,idea:"freunde"},
+ {k:"lehrer",cat:"arbeit",ic:"🍎",de:"Lehrkraft & Schüler/in",en:"Teacher & student",care:true,frame:"w",idea:"lernen",
+   o:{de:["deine Lehrerin oder dein Lehrer","deiner Lehrerin oder deinem Lehrer"],en:["your teacher","your teacher"]},y:{de:["deine Schülerin oder dein Schüler","deiner Schülerin oder deinem Schüler"],en:["your student","your student"]}},
+ {k:"trainer",cat:"arbeit",ic:"🏅",de:"Trainer/in & Schützling",en:"Coach & trainee",sub:["Sport, Musik, Hobby","Sports, music, hobbies"],care:true,frame:"w",idea:"lernen",
+   o:{de:["deine Trainerin oder dein Trainer","deiner Trainerin oder deinem Trainer"],en:["your coach","your coach"]},y:{de:["dein Schützling","deinem Schützling"],en:["your trainee","your trainee"]}},
+ {k:"ausbildung",cat:"arbeit",ic:"🛠️",de:"Ausbilder/in & Azubi",en:"Mentor & apprentice",sub:["auch Mentoring, Einarbeitung","also mentoring, onboarding"],care:true,frame:"w",idea:"lernen",
+   o:{de:["deine Ausbilderin oder dein Ausbilder","deiner Ausbilderin oder deinem Ausbilder"],en:["your mentor","your mentor"]},y:{de:["dein Azubi","deinem Azubi"],en:["your apprentice","your apprentice"]}},
+ {k:"kollegen",cat:"arbeit",ic:"💼",de:"Kolleginnen & Kollegen",en:"Colleagues",frame:"w",idea:"kollegen"},
+ {k:"chef",cat:"arbeit",ic:"🧭",de:"Führungskraft & Mitarbeiter/in",en:"Manager & team member",frame:"w",idea:"kollegen"}
 ];
 const relDef=k=>RELS.find(r=>r.k===k)||RELS.find(r=>r.k==="freunde");
-/* gespeichert als "basis|modus|älter" – alte Einträge ("eltern") bleiben gültig */
-const parseRel=str=>{const [k,mode,older]=String(str||"freunde").split("|");return {k,mode:mode||"",older:older||""}};
-const MODES=[["fam","🫶","Fürsorglich","Caring","Fast wie Eltern und Kind: Eine Seite kümmert sich mehr.","Almost like parent and child: one side looks after the other more."],
-             ["frei","🤝","Auf Augenhöhe","On equal terms","Wie gute Freunde.","Like good friends."],
-             ["neu","🌱","Noch am Kennenlernen","Still getting to know each other","Locker, mit leichteren Fragen.","Relaxed, with lighter questions."]];
+/* gespeichert als "basis|rollen|rahmen": rollen = "eq" oder "o"+Person (id oder #Index), rahmen = p/m/w
+   ältere Formen ("eltern", "onkel|fam|#1", "lehrer|lern", "onkel|frei") bleiben gültig */
+const parseRel=str=>{
+  const [k,a,b]=String(str||"freunde").split("|");
+  if(["p","m","w"].includes(b))return {k,roles:a,frame:b};
+  if(a==="fam"||a==="lern")return {k,roles:"o"+(b||""),frame:a==="lern"?"w":"p"};
+  if(a==="frei"||a==="neu")return {k,roles:"eq",frame:"p",light:a==="neu"};
+  return {k,roles:null,frame:null};
+};
+const refOf=(P,i)=>P[i].id||("#"+i);
+function relDefaults(r,A,B){
+  const ra=rank(A.stage),rb=rank(B.stage), olderByAge=ra<rb?1:0;
+  const care=r.care===true||(r.care==="age"&&ra!==rb);
+  return {roles:care?"o"+refOf([A,B],olderByAge):"eq",frame:r.frame||"p"};
+}
+const nearKey=c=>c.key||null;
 const FACES=["👩","👨","🧔","👱‍♀️","👩‍🦱","👨‍🦱","👵","👴","👧","👦","🧒","👶","🧑","👩‍🦰","🧑‍🦱","🐻"];
 const WORDS={de:{young:["Ein kleines bisschen","Ein bisschen","Mittel","Doll","Ganz, ganz doll"],old:["Kaum","Ein wenig","Mittel","Deutlich","Total"]},
              en:{young:["A tiny bit","A little","Medium","A lot","So, so much"],old:["Barely","A little","Medium","Clearly","Totally"]}};
@@ -1085,29 +1114,43 @@ function labels(P,rel,younger,asym=CUR?CUR.asym:false){
   });
 }
 function makeCtx(A,B,rel){
-  const pr=parseRel(rel), r=relDef(pr.k);
-  const mode=r.kind==="ask"?(pr.mode||"fam"):r.kind==="asym"?(r.mode||"fam"):"frei";
-  const asym=mode==="fam"||mode==="lern";
-  const P=[A,B];
+  const pr=parseRel(rel), r=relDef(pr.k), P=[A,B];
+  const d=relDefaults(r,A,B), roles=pr.roles||d.roles, frame=pr.frame||d.frame;
+  const asym=roles!=="eq";
   let older=0,younger=1;
   if(asym){
-    let o=-1;
-    if(pr.older)o=pr.older[0]==="#"?+pr.older.slice(1):P.findIndex(p=>p.id===pr.older);
-    if(o<0)o=rank(A.stage)<rank(B.stage)?1:0;
+    const ref=roles.slice(1);
+    let o=ref?(ref[0]==="#"?+ref.slice(1):P.findIndex(p=>p.id===ref)):-1;
+    if(!(o===0||o===1))o=rank(A.stage)<rank(B.stage)?1:0;
     older=o;younger=1-o;
   }
-  let g, st=null, young=null, love=asym;
-  if(mode==="lern"){
-    g="lernen";love=false;
-    const ys=P[younger].stage;
-    if(rank(ys)<=1){st="emoji";young=true}else if(ys==="teen")st="meme";else st="line";
-  }else if(asym)g={kita:"klein",schule:"kind",teen:"teen"}[P[younger].stage]||"jung";
-  else if(r.team)g="team";
-  else g=Math.min(rank(A.stage),rank(B.stage))<=1?"kinder":"paar";
-  const ctx={P,rel,base:r.k,mode,asym,older,younger,g,st,young,love,home:!!r.home,idea:mode==="frei"||mode==="neu"?(r.kind==="ask"?"freunde":r.idea):r.idea,
-    wt:mode==="neu"?{s:40,w:45,e:15}:null,n:0,played:{},key:(A.id&&B.id)?pairKey(A.id,B.id):null};
+  const kid=Math.min(rank(A.stage),rank(B.stage))<=1;
+  let g,g2=null,st=null,young=null;
+  if(asym){
+    const fam={kita:"klein",schule:"kind",teen:"teen"}[P[younger].stage]||"jung";
+    if(frame==="w"){
+      g="lernen";
+      const ys=P[younger].stage;
+      if(rank(ys)<=1){st="emoji";young=true}else if(ys==="teen")st="meme";else st="line";
+    }else{g=fam;if(frame==="m")g2="lernen"}
+  }else{
+    const priv=kid?"kinder":"paar";
+    if(frame==="w"&&!kid)g="team";else{g=priv;if(frame==="m"&&!kid)g2="team"}
+  }
+  const idea=asym?(frame==="w"?"lernen":"eltern"):(frame==="w"?"kollegen":(["partner","geschwister"].includes(r.idea)?r.idea:"freunde"));
+  const key=(A.id&&B.id)?pairKey(A.id,B.id):null;
+  const nr=key&&S.near&&S.near[key];
+  const ctx={P,rel,base:r.k,roles,frame,asym,older,younger,g,g2,st,young,love:asym&&g!=="lernen",home:!!r.home&&asym&&frame!=="w",idea,
+    near:nr?(nr[0]+nr[1])/2:(pr.light?2:null),n:0,played:{},key};
   labels(P,rel,younger,asym);
   return ctx;
+}
+/* Gewichtung je nach Nähe: wenig Nähe = leichter, viel Nähe = tiefer */
+function weights(){
+  const W={...WEIGHTS[CUR.g]}, n=CUR.near;
+  if(n!=null&&n<=2){W.s+=10;W.w+=15;W.e=Math.max(5,W.e-25)}
+  else if(n!=null&&n>=6){W.s=Math.max(5,W.s-5);W.w=Math.max(5,W.w-10);W.e+=15}
+  return W;
 }
 const group=()=>CUR?CUR.g:"kind";
 const style=()=>CUR&&CUR.st||GROUPS[group()].style;
@@ -1126,11 +1169,15 @@ function loc(g){
   return {...g,n:e[0],p:e[1],mt:e[2]||g.mt,mb:e[3]||g.mb};
 }
 const fits=o=>!(HOME_ONLY.has(o.id)&&!CUR.home)&&!(PARTNER_ONLY.has(o.id)&&CUR.base!=="partner");
-function pool(ai){
-  const g=CUR.g;
-  if(!CUR.asym)return [...SYM[g].map(a=>toObj(g,a)).filter(fits),...(S.custom[g]||[])];
+function base(g,ai){
+  if(!CUR.asym)return SYM[g].map(a=>toObj(g,a)).filter(fits);
   const yAns=ai===CUR.younger;
-  return [...(yAns?SETS:SWAP)[g].map(a=>toObj(g+(yAns?":y":":o"),a)).filter(fits),...(S.custom[g]||[]).filter(c=>(c.dir||"kid")===(yAns?"kid":"parent"))];
+  return (yAns?SETS:SWAP)[g].map(a=>toObj(g+(yAns?":y":":o"),a)).filter(fits);
+}
+function pool(ai){
+  const g=CUR.g, yAns=ai===CUR.younger;
+  const own=(S.custom[g]||[]).filter(c=>!CUR.asym||(c.dir||"kid")===(yAns?"kid":"parent"));
+  return [...base(g,ai),...(CUR.g2?base(CUR.g2,ai):[]),...own];
 }
 const toObj=(pre,[id,e,n,p,i,mt,mb])=>({id:pre+":"+id,e,n,p,i,mt,mb,c:tagOf(pre,id)});
 
@@ -1557,37 +1604,73 @@ function afterPeople(A,B,next){
   if(key&&S.rel[key])return finish(A,B,S.rel[key],next);
   const duo=`<div class="duo"><span class="face">${A.av}</span><span class="face">${B.av}</span></div>`;
   const done=rel=>{if(key){S.rel[key]=rel;save()}finish(A,B,rel,next)};
-  // Schritt 3: Wer hat welche Rolle? (nur wenn das Alter es nicht klärt)
-  const askWho=(r,mode)=>{
-    const ra=rank(A.stage),rb=rank(B.stage);
-    const clear=mode==="lern"?((ra<=2)!==(rb<=2)):ra!==rb;
-    if(clear)return done(r.k+"|"+mode);
-    const ref=(p,i)=>p.id||("#"+i);
-    show(`${duo}
-    <div class="say"><h2>${L(r.who[0],r.who[1])}</h2></div>
-    <div class="list">${[A,B].map((p,i)=>`<button class="item pick" data-o="${ref(p,i)}"><span class="e">${p.av}</span><div class="t"><div class="n">${p.anon?(i===0?L("Erste Person","First player"):L("Zweite Person","Second player")):esc(p.name)}</div><div class="g">${stageName(p.stage)}</div></div></button>`).join("")}</div>`);
-    stage.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>done(r.k+"|"+mode+"|"+b.dataset.o));
-  };
-  // Schritt 2: Wie fühlt sich die Beziehung an?
-  const askMode=r=>{
-    show(`${duo}
-    <div class="say"><h2>${L("Wie fühlt sich eure Beziehung an?","What does your relationship feel like?")}</h2></div>
-    <p class="hint">${L("Dann passen die Fragen besser zu euch.","Then the questions fit you better.")}</p>
-    <div class="list">${MODES.map(([m,ic,de,en,dd,de2])=>`<button class="item pick" data-m="${m}"><span class="e">${ic}</span><div class="t"><div class="n">${L(de,en)}</div><div class="g">${L(dd,de2)}</div></div></button>`).join("")}</div>`);
-    stage.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>b.dataset.m==="fam"?askWho(r,"fam"):done(r.k+"|"+b.dataset.m));
-  };
   show(`${duo}
   <div class="say"><h2>${L("Wie gehört ihr zusammen?","How do you belong together?")}</h2></div>
   <p class="hint">${key?L("Fragen wir nur beim ersten Mal.","We only ask the first time."):L("Damit die Fragen zu euch passen.","So the questions fit you.")}</p>
   ${REL_CATS.map(([c,de,en])=>`<div class="rel-cat">${L(de,en)}</div>
   <div class="list rel-list">${RELS.filter(r=>r.cat===c).map(r=>`<button class="item pick" data-r="${r.k}"><span class="e">${r.ic}</span><div class="t"><div class="n">${L(r.de,r.en)}</div>${r.sub?`<div class="g">${L(r.sub[0],r.sub[1])}</div>`:""}</div></button>`).join("")}</div>`).join("")}
   <p class="hint">${L("Nicht dabei? Wählt, was sich am ähnlichsten anfühlt.","Not listed? Pick what feels most similar.")}</p>`);
-  stage.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{
-    const r=relDef(b.dataset.r);
-    if(r.kind==="ask")return askMode(r);
-    if(r.kind==="asym")return askWho(r,r.mode||"fam");
-    done(r.k);
-  });
+  stage.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>traits(A,B,relDef(b.dataset.r),done));
+}
+/* Schritt 2: Rollen und Rahmen, passend vorausgewählt */
+function traits(A,B,r,done){
+  const d=relDefaults(r,A,B); let roles=d.roles, frame=d.frame;
+  const P=[A,B], who=(p,i)=>p.anon?(i?L("Person 2","Player 2"):L("Person 1","Player 1")):esc(p.name);
+  const roleOpts=[["o"+refOf(P,0),A.av,L(`${who(A,0)} mehr`,`${who(A,0)} more`)],["eq","⚖️",L("Beide gleich","Both equally")],["o"+refOf(P,1),B.av,L(`${who(B,1)} mehr`,`${who(B,1)} more`)]];
+  const frameOpts=[["p","🏠",L("Privat","Private")],["m","🔀",L("Beides","Both")],["w","🏫",L("Arbeit, Schule, Verein","Work, school, club")]];
+  const chips=(opts,cur,attr)=>`<div class="trait-row">${opts.map(([v,ic,t])=>`<button class="chip" ${attr}="${v}" aria-pressed="${v===cur}"><span class="st-ic">${ic}</span><span>${t}</span></button>`).join("")}</div>`;
+  show(`
+  <div class="duo"><span class="face">${A.av}</span><span class="face">${B.av}</span></div>
+  <div class="say"><h2>${L("Wie seid ihr verbunden?","How are you connected?")}</h2></div>
+  <p class="hint">${r.ic} ${L(r.de,r.en)} · ${L("Schon passend vorausgewählt. Ändert nur, was bei euch anders ist.","Already preselected. Only change what's different for you.")}</p>
+  <div class="form">
+    <div class="field"><label>${L("Wer kümmert sich eher um wen?","Who looks after whom more?")}</label>
+      <p class="trait-hint">${L("Oder: Wer bringt wem etwas bei?","Or: who teaches whom?")}</p>${chips(roleOpts,roles,"data-ro")}</div>
+    <div class="field"><label>${L("Wo seid ihr vor allem zusammen?","Where do you mostly spend time together?")}</label>${chips(frameOpts,frame,"data-fr")}</div>
+  </div>
+  <div class="push"><button class="big primary" id="ok">${CHECK}<span>${L("Passt so","Looks right")}</span></button></div>`);
+  const wire=(attr,set)=>stage.querySelectorAll(`[${attr}]`).forEach(b=>b.onclick=()=>{set(b.getAttribute(attr));stage.querySelectorAll(`[${attr}]`).forEach(x=>x.setAttribute("aria-pressed",x===b))});
+  wire("data-ro",v=>roles=v);wire("data-fr",v=>frame=v);
+  $("#ok").onclick=()=>done(r.k+"|"+roles+"|"+frame);
+}
+/* ---------- Aufwärmrunde: Wie nah seid ihr euch? (beide heimlich, dann gemeinsam aufdecken) ---------- */
+const circles=(n,w=84)=>{const d=40-n*6;const cx=42-d/2;return `<svg viewBox="0 0 84 44" width="${w}" aria-hidden="true"><circle cx="${cx}" cy="22" r="16" class="c1"/><circle cx="${cx+d}" cy="22" r="16" class="c2"/></svg>`};
+function nearRound(next){
+  const res=[];
+  const pick=i=>{
+    const p=CUR.P[i], o=CUR.P[1-i];
+    show(`
+    <div class="say"><h2>${L("Wie nah seid ihr euch?","How close are you?")}</h2></div>
+    <p class="hint" id="nq">${L(`Welches Bild passt zu dir und ${esc(o.anon?o.dat:o.name)}? Ganz heimlich!`,`Which picture fits you and ${esc(o.anon?o.nom:o.name)}? In secret!`)}</p>
+    <div class="near-grid">${[0,1,2,3,4,5,6].map(n=>`<button class="near-opt" data-n="${n+1}" aria-label="${n+1} ${L("von","of")} 7">${circles(n)}</button>`).join("")}</div>
+    <div class="near-ends"><span>${L("weit weg","far apart")}</span><span>${L("ganz nah","very close")}</span></div>`);
+    if(isKid(p))speakSeq([{text:L(`Wie nah seid ihr euch, du und ${o.anon?o.nom:o.name}? Tippe auf ein Bild. Links: weit weg. Rechts: ganz nah.`,`How close are you and ${o.anon?o.nom:o.name}? Tap a picture. Left: far apart. Right: very close.`),el:$("#nq")}],true);
+    stage.querySelectorAll("[data-n]").forEach(b=>b.onclick=()=>{res[i]=+b.dataset.n;i===0?hand(1):reveal()});
+  };
+  const hand=i=>{
+    const p=CUR.P[i];
+    show(`
+    <button class="handoff" id="go">
+      <div class="face">${p.av}</div>
+      <span class="h2like">${i===0?L("Kurze Aufwärmrunde","Quick warm-up"):(p.anon?L("Jetzt bist du dran!","Your turn now!"):L(`${esc(p.name)}, jetzt bist du dran!`,`${esc(p.name)}, it's your turn!`))}</span>
+      <p class="hint">${i===0?L("Jeder schätzt heimlich: Wie nah seid ihr euch? Dann deckt ihr gemeinsam auf. Tippe auf das Gesicht.","Each of you secretly rates: how close are you? Then you reveal together. Tap the face."):L("Gib das Handy weiter. Dann auf das Gesicht tippen.","Pass the phone on. Then tap the face.")}</p>
+    </button>`);
+    $("#go").onclick=()=>pick(i);
+  };
+  const reveal=()=>{
+    const [a,b]=res, diff=Math.abs(a-b);
+    if(CUR.key){S.near=S.near||{};S.near[CUR.key]=[a,b];save()}
+    CUR.near=(a+b)/2;
+    const msg=diff===0?L("Genau gleich gesehen!","Seen exactly the same!"):diff===1?L("Fast gleich gesehen.","Almost the same."):L("Ihr seht das unterschiedlich. Erzählt euch mal, warum!","You see it differently. Tell each other why!");
+    show(`
+    <div class="say"><h2>${msg}</h2></div>
+    <div class="near-reveal">${CUR.P.map((p,i)=>`<div class="nr-col"><span class="face">${p.av}</span>${circles(res[i]-1,120)}</div>`).join("")}</div>
+    <p class="hint">${L("Danach richten sich jetzt eure Fragen.","Your questions now adapt to this.")}</p>
+    <div class="push"><button class="big primary" id="go">${ARROW}<span>${L("Los geht's","Let's play")}</span></button></div>`);
+    if(diff===0)burst(14);
+    $("#go").onclick=next;
+  };
+  hand(0);
 }
 const ENDING={klein:"spruch",kind:"spruch",kinder:"spruch",teen:"meme",jung:"idee",paar:"idee",team:"idee",lernen:"idee"};
 const LENGTH={spruch:[10,5],meme:[8,4],idee:[12,4]};
@@ -1596,6 +1679,7 @@ function finish(A,B,rel,next){
   CUR.end=CUR.g==="lernen"?{emoji:"spruch",meme:"meme",line:"idee"}[CUR.st]:ENDING[CUR.g];
   CUR.total=LENGTH[CUR.end][0];CUR.res=[];
   if(CUR.key){S.lastPair=[A.id,B.id];save()}
+  if(!M.nr&&CUR.near==null)return nearRound(next);
   next();
 }
 
@@ -1631,7 +1715,7 @@ function drawGesture(ai,exclude){
   const own=list.filter(g=>g.custom);
   if(own.length&&Math.random()<.6)return own[Math.floor(Math.random()*own.length)];
   list=list.filter(g=>!g.custom).length?list.filter(g=>!g.custom):list;
-  const W=CUR.wt||WEIGHTS[CUR.g], cats=["s","w","e"].filter(k=>list.some(g=>g.c===k));
+  const W=weights(), cats=["s","w","e"].filter(k=>list.some(g=>g.c===k));
   if(cats.length){
     const tot=cats.reduce((n,k)=>n+W[k],0); let r=Math.random()*tot, cat=cats[0];
     for(const k of cats){if((r-=W[k])<0){cat=k;break}}

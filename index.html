@@ -1354,7 +1354,7 @@ function album(pid){
   :`<div class="empty"><span class="e">${cur.av}</span><h2>${L("Noch leer","Still empty")}</h2><p class="hint">${L(`Sobald ${esc(cur.name)} eine Frage beantwortet hat, steht hier, was am meisten bedeutet.`,`Once ${esc(cur.name)} has answered a question, you'll see here what matters most.`)}</p></div>`}
   ${nudge(L("Eigenes Bonding erstellen","Create your own bonding"),ownCount()?L(`${ownCount()} eigene schon dabei. Was fehlt noch?`,`${ownCount()} of your own so far. What's missing?`):L("Was macht nur ihr zwei miteinander?","What do only you two do together?"))}
   ${ownCount()?`<button class="tiny" id="mg">${L("Eigene Bondings verwalten","Manage your bondings")}</button>`:""}
-  ${S.supporter?`<div class="supporter"><span>💛 ${L("Unterstützer · Dankeschön-Paket aktiv","Supporter · thank-you pack active")}</span>
+  ${!TIP_ENABLED?"":S.supporter?`<div class="supporter"><span>💛 ${L("Unterstützer · Dankeschön-Paket aktiv","Supporter · thank-you pack active")}</span>
       <button class="chip" id="goldBtn" aria-pressed="${!!S.gold}">${L("Goldene Herzen","Golden hearts")}</button></div>
     <div id="gateSlot"><button class="support-btn" id="forParents"><span class="sb-ic" aria-hidden="true">☕</span><span class="sb-t"><b>${L("Für Eltern: nochmal unterstützen","For parents: support again")}</b><span>${L("Hilft bei neuen Fragen und Illustrationen","Helps with new questions and illustrations")}</span></span><span class="sb-go" aria-hidden="true">›</span></button></div>`
     :S.rounds>=5?`<div id="gateSlot"><button class="support-btn" id="forParents"><span class="sb-ic" aria-hidden="true">☕</span><span class="sb-t"><b>${L("Für Eltern: mBond unterstützen","For parents: support mBond")}</b><span>${L(`Dankeschön: ${PLUS_COUNT} neue Fragen und goldene Herzen`,`Thank-you: ${PLUS_COUNT} new questions and golden hearts`)}</span></span><span class="sb-go" aria-hidden="true">›</span></button></div>`:""}
@@ -1488,7 +1488,8 @@ function endGame(){
    Im Album ist er hinter einer Eltern-Sperre (Rechenaufgabe in Worten). */
 const youngest=()=>CUR?Math.min(...CUR.P.map(p=>rank(p.stage))):9;
 const hasMinor=()=>youngest()<=2;
-const tipAllowed=()=>youngest()>=2&&(!M.nr||rank(CUR.P[M.role].stage)>=3); // ab Teenager, aber nie auf dem Gerät eines Teens
+const TIP_ENABLED=false; // false = Unterstützung komplett ausgeblendet (privates Hobbyprojekt)
+const tipAllowed=()=>TIP_ENABLED&&youngest()>=2&&(!M.nr||rank(CUR.P[M.role].stage)>=3); // ab Teenager, aber nie auf dem Gerät eines Teens
 const adultsOnly=()=>youngest()>=3;
 const TIPCFG={firstPopup:3,popupEvery:10};
 const NUMW={de:["null","eins","zwei","drei","vier","fünf","sechs","sieben","acht","neun"],en:["zero","one","two","three","four","five","six","seven","eight","nine"]};
@@ -1516,7 +1517,7 @@ const TIP={
 };
 /* Zählen ohne Cookies und ohne persönliche Daten (GoatCounter).
    Eigenen Code eintragen, z. B. "mbond" für https://mbond.goatcounter.com – leer = es wird nichts gezählt. */
-const TRACK={goatcounter:"likedthatapp"};
+const TRACK={goatcounter:""};
 const counted={};
 /* Eigene Besuche ausnehmen: Seite einmal mit #toggle-goatcounter am Ende der Adresse öffnen (wie bei GoatCounter üblich) */
 try{if(location.hash==="#toggle-goatcounter"){const on=localStorage.getItem("skipgc")==="t";localStorage.setItem("skipgc",on?"f":"t");alert&&0;history.replaceState(null,"",location.pathname)}}catch(e){}

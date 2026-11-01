@@ -10,6 +10,5 @@ Web-App für Handy und Tablet: über GitHub Pages öffnen und „Zum Home-Bildsc
 - Eigene Bondings, Herz-Album, Ergebnis als Bild teilen
 - Zwei Geräte per Code, im selben WLAN oder aus der Ferne (PeerJS, MIT-Lizenz, siehe peerjs-LICENSE.txt)
 - Vorlesen für Kinder bis Grundschulalter
-- Freiwilliges Trinkgeld (nie bei Spielen mit Kindern), Dankeschön-Paket für Unterstützer
 
 Enthaltene Bibliotheken und Schriften: PeerJS 1.5.5 (MIT), qrcode-generator 1.4.4 (MIT), Fredoka und Anton (SIL Open Font License 1.1).

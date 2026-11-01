@@ -325,6 +325,75 @@ button.who-box .face{width:84px;height:84px;font-size:50px}
 .optout{margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:8px 10px;font-size:14px}
 .legal-date{margin:0;font-size:13px;color:var(--muted)}
 
+/* ===== Tablet ===== */
+.ask-grid{display:flex;flex-direction:column;gap:18px}
+.ask-vis,.ask-ctl{display:flex;flex-direction:column;gap:14px;min-width:0}
+.vo{display:flex;align-items:center;gap:10px}
+.vo svg{width:22px;height:22px;flex:none;color:var(--heart)}
+.vo[aria-pressed="true"]{border-color:var(--heart);background:var(--heart-soft)}
+.vo:disabled{opacity:.5}
+@media (min-width:700px) and (min-height:600px){
+  .app{max-width:880px}
+  header{padding-block:22px 10px}
+  .brand{font-size:26px}.mark{width:38px;height:38px;border-radius:11px}
+  .icon-btn{width:52px;height:52px;border-radius:16px}.icon-btn svg{width:26px;height:26px}
+  .screen{gap:24px;padding-block:16px 32px}
+  h2,.h2like{font-size:34px}
+  .hint{font-size:18px;line-height:1.5}
+  .hero h1{font-size:60px}.hero svg{width:300px}
+  .big{min-height:80px;font-size:25px;border-radius:28px}.big svg{width:32px;height:32px}
+  .push{width:100%;max-width:600px;align-self:center}
+  .screen.compact{align-items:stretch}
+  .list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .item{padding:14px 18px;border-radius:22px}.item .e{font-size:44px;width:60px}.item .n{font-size:20px}.item .g{font-size:15px}
+  .face{width:120px;height:120px;font-size:72px}
+  .gesture-big{width:170px;height:170px;font-size:104px;border-radius:40px}
+  .gname{font-size:24px}
+  .meme{width:min(100%,520px)}.mt,.mb{font-size:clamp(26px,3.6vw,38px)}
+  .scale{gap:14px}
+  .flip{height:290px}.side .face{width:90px;height:90px;font-size:54px}
+  .reveal{gap:20px;max-width:720px;width:100%;align-self:center}
+  .result h2{font-size:32px}
+  .handoff .face{width:200px;height:200px;font-size:128px}
+  .quote{font-size:30px;padding:30px}
+  .idea p{font-size:24px}
+  .find{padding:16px 18px}.find b{font-size:18px}
+  .grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+  .card{min-height:140px}.card .e{font-size:56px}.card .n{font-size:17px}
+  .form{max-width:720px;width:100%;align-self:center}
+  .field input{font-size:20px;padding:16px}
+  .stages{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .emojis,.icons{grid-template-columns:repeat(auto-fill,minmax(52px,1fr))!important}
+  .emojis button,.icons button{font-size:34px}
+  .keypad{max-width:420px;gap:14px}.key{min-height:84px;font-size:36px}
+  .code span{width:76px;height:92px;font-size:46px}
+  .legal{max-width:70ch;align-self:center}
+  .legal-sec p{font-size:16px}
+  .tip,.support-btn,.gate,.supporter{max-width:600px;width:100%;align-self:center}
+  .pop-box{max-width:560px}
+  .people .chip{font-size:17px;padding:10px 16px}
+  .demo-stage{min-height:240px}
+}
+/* Tablet quer: Bild links, Frage und Herzen rechts */
+@media (min-width:900px) and (min-height:600px) and (orientation:landscape){
+  .ask-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:40px;align-items:center;flex:1}
+  .ask-vis{align-items:center;justify-content:center}
+  .ask-ctl .say{justify-content:flex-start}.ask-ctl h2{text-align:left}.ask-ctl .hint{text-align:left}
+  .ask-ctl .scale{justify-content:flex-start}
+  .ask-ctl .tiny{align-self:flex-start}
+  .app{max-width:1100px}
+}
+
+.rev-grid{display:flex;flex-direction:column;gap:18px;flex:1}
+.rev-left,.rev-right{display:flex;flex-direction:column;gap:16px;min-width:0}
+.rev-right{flex:1}
+@media (min-width:700px) and (min-height:600px){.rev-right .push{margin-top:8px}.rev-grid{flex:0}}
+@media (min-width:900px) and (min-height:600px) and (orientation:landscape){
+  .rev-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:40px;align-items:center}
+  .rev-right{justify-content:center}.rev-right .result{text-align:left;align-items:flex-start}
+  .rev-right .push{max-width:none}
+}
+
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{border-radius:16px;padding:8px 4px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:14px;line-height:1.1}
@@ -922,6 +991,106 @@ const SHARE=ic('<path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h1
    - Chrome bricht ab, wenn die Ausgabe vom Speicher weggeräumt wird → Referenz behalten
    - Manche eingebetteten Ansichten (z. B. In-App-Browser unter Android) haben gar keine Sprachausgabe → erkennen und Hinweis zeigen */
 let TTS_OK=("speechSynthesis" in window)&&typeof SpeechSynthesisUtterance!=="undefined";
+
+/* ---------- KI-Stimmen (Piper) aus mRead ----------
+   mBond nutzt die Stimmen und Bausteine, die mRead schon auf derselben Seite (gionessbach.github.io/mread/) bereitstellt.
+   Alles läuft im Browser; nach dem ersten Laden auch offline. Nur für deutsche Texte. */
+const KI={kerstin:["Kerstin","Frauenstimme"],ramona:["Ramona","Frauenstimme"],thorsten:["Thorsten","Männerstimme"]};
+const KI_BASE=(()=>{try{return new URL("../mread/",location.href).href}catch(e){return ""}})();
+let kiAvail=null; // null = unbekannt, true/false nach Prüfung
+function checkKI(){
+  if(kiAvail!==null||!/^https?:/.test(location.href)||typeof fetch!=="function")return Promise.resolve(kiAvail=kiAvail??false);
+  return fetch(KI_BASE+"voices/kerstin.json",{method:"GET",cache:"force-cache"}).then(r=>kiAvail=r.ok).catch(()=>kiAvail=false);
+}
+const piper={name:null,sess:null,cfg:null,loading:null,loadingName:null,modReady:null,onLine:null,chain:Promise.resolve(),ctx:null,src:null};
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>{s.remove();rej(new Error(src))};document.head.appendChild(s)})}
+function fetchProgress(url,onProg){
+  return fetch(url).then(r=>{
+    if(!r.ok)throw new Error(url);
+    const total=+r.headers.get("Content-Length")||0;
+    if(!onProg||!r.body||!r.body.getReader)return r.arrayBuffer();
+    const rd=r.body.getReader(),chunks=[];let got=0;
+    const pump=()=>rd.read().then(x=>{if(x.done)return;chunks.push(x.value);got+=x.value.length;onProg(total?Math.min(1,got/total):0);return pump()});
+    return pump().then(()=>{const out=new Uint8Array(got);let o=0;chunks.forEach(c=>{out.set(c,o);o+=c.length});return out.buffer});
+  });
+}
+function phonemeModule(){
+  if(!piper.modReady){
+    piper.modReady=(typeof createPiperPhonemize==="undefined"?loadScript(KI_BASE+"vendor/piper/piper_phonemize.js"):Promise.resolve()).then(()=>createPiperPhonemize({
+      print:l=>{if(piper.onLine)piper.onLine(l)},printErr:()=>{},locateFile:f=>KI_BASE+"vendor/piper/"+f
+    })).catch(e=>{piper.modReady=null;throw e});
+  }
+  return piper.modReady;
+}
+function toIds(ph){
+  const map=piper.cfg.phoneme_id_map;let ids=map["^"].concat(map["_"]);
+  Array.from(ph.join("").normalize("NFC")).forEach(c=>{if(map[c])ids=ids.concat(map[c],map["_"])});
+  return ids.concat(map["$"]);
+}
+function phonemize(text){
+  return phonemeModule().then(m=>{
+    let out=[];
+    piper.onLine=l=>{try{out=out.concat(toIds(JSON.parse(l).phonemes||[]))}catch(e){}};
+    try{m.callMain(["-l",(piper.cfg&&piper.cfg.espeak.voice)||"de","--input",JSON.stringify([{text}]),"--espeak_data","/espeak-ng-data"])}finally{piper.onLine=null}
+    return out;
+  });
+}
+function piperLoad(name,onProg){
+  if(piper.name===name&&piper.sess)return Promise.resolve();
+  if(piper.loading&&piper.loadingName===name)return piper.loading;
+  piper.loadingName=name;let cfg;
+  piper.loading=(typeof ort==="undefined"?loadScript(KI_BASE+"vendor/ort/ort.wasm.min.js"):Promise.resolve()).then(()=>{
+    ort.env.wasm.numThreads=1;ort.env.wasm.wasmPaths=KI_BASE+"vendor/ort/";
+    return fetch(KI_BASE+"voices/"+name+".json");
+  }).then(r=>{if(!r.ok)throw new Error("json");return r.json()}).then(c=>{
+    cfg=c;return Promise.all([fetchProgress(KI_BASE+"voices/"+name+".onnx",onProg),phonemeModule()]);
+  }).then(r=>ort.InferenceSession.create(r[0])).then(sess=>{
+    if(piper.sess&&piper.sess.release)try{piper.sess.release()}catch(e){}
+    piper.sess=sess;piper.cfg=cfg;piper.name=name;
+  });
+  const p=piper.loading;p.then(()=>{if(piper.loading===p)piper.loading=null},()=>{if(piper.loading===p)piper.loading=null});
+  return p;
+}
+function piperSynth(ids){
+  const job=piper.chain.then(()=>{
+    const c=piper.cfg.inference;
+    return piper.sess.run({
+      input:new ort.Tensor("int64",BigInt64Array.from(ids.map(v=>BigInt(v))),[1,ids.length]),
+      input_lengths:new ort.Tensor("int64",BigInt64Array.from([BigInt(ids.length)]),[1]),
+      scales:new ort.Tensor("float32",Float32Array.from([c.noise_scale,c.length_scale*1.12,c.noise_w]),[3])
+    });
+  }).then(r=>r.output.data);
+  piper.chain=job.catch(()=>{});return job;
+}
+function audioCtx(){
+  if(!piper.ctx){
+    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
+    piper.ctx=new AC();
+    try{const sb=piper.ctx.createBufferSource();sb.buffer=piper.ctx.createBuffer(1,1,22050);sb.connect(piper.ctx.destination);sb.start(0)}catch(e){}
+  }
+  if(piper.ctx.state==="suspended")piper.ctx.resume();
+  return piper.ctx;
+}
+function piperStop(){if(piper.src){try{piper.src.onended=null;piper.src.stop()}catch(e){}piper.src=null}}
+let kiJob=0;
+function kiSpeak(text,fromTap){
+  const name=S.voice, my=++kiJob;
+  piperStop();
+  const ready=piper.name===name&&piper.sess;
+  if(!ready&&fromTap)toast(L(`Die KI-Stimme ${KI[name][0]} wird vorbereitet …`,`Preparing the AI voice ${KI[name][0]} …`));
+  piperLoad(name).then(()=>phonemize(text)).then(ids=>piperSynth(ids)).then(pcm=>{
+    if(my!==kiJob||!S.sound)return;
+    const ctx=audioCtx();if(!ctx)return;
+    const buf=ctx.createBuffer(1,pcm.length,piper.cfg.audio.sample_rate);buf.getChannelData(0).set(pcm);
+    const src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);src.onended=()=>{if(piper.src===src)piper.src=null};
+    piper.src=src;src.start();
+  }).catch(()=>{
+    if(fromTap)toast(L("Die KI-Stimme konnte nicht geladen werden. Es liest die Gerätestimme vor.","The AI voice couldn't be loaded. Using the device voice instead."));
+    deviceSpeak(text,fromTap);
+  });
+}
+/* Stimme vorab laden, sobald sie gewählt ist (große Datei, nur einmal) */
+function preloadKI(onProg){if(S.voice&&KI[S.voice])return piperLoad(S.voice,onProg);return Promise.resolve()}
 let voice=null, ttsUnlocked=false, ttsWarned=false, speakTimer=0;
 const ttsKeep=[];
 function pickVoice(){
@@ -934,6 +1103,7 @@ function pickVoice(){
 }
 if(TTS_OK){pickVoice();try{speechSynthesis.addEventListener("voiceschanged",pickVoice)}catch(e){speechSynthesis.onvoiceschanged=pickVoice}}
 function unlockTTS(){
+  if(S.voice&&KI[S.voice])audioCtx();
   if(ttsUnlocked||!TTS_OK)return;ttsUnlocked=true;
   try{const u=new SpeechSynthesisUtterance(" ");u.volume=0;u.lang=EN_ON()?"en-GB":"de-DE";speechSynthesis.speak(u)}catch(e){}
 }
@@ -949,6 +1119,10 @@ function ttsMissing(){
 }
 function speak(t,fromTap){
   if(!S.sound||!t)return;
+  if(S.voice&&KI[S.voice]&&!EN_ON()&&kiAvail){kiSpeak(t,fromTap);return}
+  deviceSpeak(t,fromTap);
+}
+function deviceSpeak(t,fromTap){
   if(!TTS_OK){if(fromTap)ttsMissing();return}
   try{
     if(speechSynthesis.speaking||speechSynthesis.pending)speechSynthesis.cancel();
@@ -969,21 +1143,52 @@ function speak(t,fromTap){
 const sayBtn=t=>`<button class="icon-btn" data-say="${esc(t)}" aria-label="${L("Vorlesen","Read aloud")}">${SPK_SMALL}</button>`;
 document.addEventListener("click",e=>{const b=e.target.closest("[data-say]");if(b){unlockTTS();speak(b.dataset.say,true)}});
 function setHeader(){
-  $("#soundBtn").innerHTML=S.sound&&TTS_OK?SPK_ON:SPK_OFF;
-  $("#soundBtn").setAttribute("aria-label",TTS_OK?L("Vorlesen an oder aus","Read aloud on or off"):L("Vorlesen nicht verfügbar","Reading aloud not available"));
+  $("#soundBtn").innerHTML=S.sound&&(TTS_OK||(S.voice&&KI[S.voice]))?SPK_ON:SPK_OFF;
+  $("#soundBtn").setAttribute("aria-label",L("Vorlesen einstellen","Reading aloud settings"));
   $("#homeBtn").setAttribute("aria-label",L("Zum Start","Home"));
   const lb=$("#langBtn");lb.textContent=EN_ON()?"DE":"EN";lb.setAttribute("aria-label",L("Switch to English","Auf Deutsch wechseln"));
   document.documentElement.lang=S.lang;
 }
-$("#soundBtn").onclick=()=>{
-  if(!TTS_OK){ttsWarned=false;ttsMissing();return}
-  S.sound=!S.sound;save();setHeader();
-  if(!S.sound)speechSynthesis.cancel();
-};
+$("#soundBtn").onclick=()=>voiceSheet();
+function voiceSheet(){
+  if($(".voice-ov"))return;
+  const ov=document.createElement("div");ov.className="share-ov voice-ov";ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");
+  const draw=()=>{
+    const cur=!S.sound?"off":(S.voice&&KI[S.voice]?S.voice:"device");
+    const opt=(k,t,d,dis)=>`<button class="item pick vo" data-vo="${k}" aria-pressed="${cur===k}" ${dis?"disabled":""}><div class="t"><div class="n">${t}</div><div class="g">${d}</div></div>${cur===k?CHECK:""}</button>`;
+    ov.innerHTML=`<div class="share-box pop-box">
+      <span class="h2like">${L("Vorlesen","Reading aloud")}</span>
+      <p class="hint" style="margin:0;text-align:left">${L("Vorgelesen wird nur, wenn ein Kind bis Grundschulalter antwortet.","Only read aloud when a child up to primary school age answers.")}</p>
+      <div class="list">
+        ${opt("off",L("Aus","Off"),L("Nichts wird vorgelesen","Nothing is read aloud"))}
+        ${opt("device",L("Gerätestimme","Device voice"),TTS_OK?L("Sofort bereit","Ready right away"):L("Auf diesem Gerät nicht verfügbar","Not available on this device"),!TTS_OK)}
+        ${kiAvail?Object.entries(KI).map(([k,[n,d]])=>opt(k,`${n} · ${L("KI-Stimme","AI voice")}`,L(`${d}, natürlicher Klang · einmalig ca. 60 MB laden, danach auch offline · nur Deutsch`,`${d === "Frauenstimme" ? "Female voice" : "Male voice"}, natural sound · one-time ~60 MB download, then offline · German only`))).join("")
+          :kiAvail===null?`<p class="hint">${L("KI-Stimmen werden gesucht …","Looking for AI voices …")}</p>`:`<p class="hint" style="text-align:left">${L("KI-Stimmen gibt es in der Version auf gionessbach.github.io, zusammen mit mRead.","AI voices are available in the version on gionessbach.github.io, together with mRead.")}</p>`}
+      </div>
+      <div id="voProg" class="hint" style="margin:0"></div>
+      <button class="big primary" id="voDone">${CHECK}<span>${L("Fertig","Done")}</span></button>
+    </div>`;
+    ov.querySelectorAll("[data-vo]").forEach(b=>b.onclick=()=>{
+      const k=b.dataset.vo;
+      if(k==="off"){S.sound=false;try{speechSynthesis.cancel()}catch(e){}piperStop()}
+      else{S.sound=true;S.voice=k==="device"?null:k;unlockTTS();
+        if(KI[k]){audioCtx();const pr=$("#voProg");preloadKI(f=>{if(pr)pr.textContent=L(`${KI[k][0]} wird geladen … ${Math.round(f*100)} %`,`Loading ${KI[k][0]} … ${Math.round(f*100)} %`)})
+          .then(()=>{const p2=$("#voProg");if(p2)p2.textContent=L(`${KI[k][0]} ist bereit.`,`${KI[k][0]} is ready.`);speak(L("Hallo! So klinge ich.","Hello! This is how I sound."),true)})
+          .catch(()=>{const p2=$("#voProg");if(p2)p2.textContent=L("Laden hat nicht geklappt. Bitte Internetverbindung prüfen.","Loading failed. Please check the internet connection.")})}
+        else speak(L("Hallo! So klinge ich.","Hello! This is how I sound."),true)}
+      save();setHeader();draw();
+    });
+    $("#voDone").onclick=()=>ov.remove();
+  };
+  document.body.appendChild(ov);draw();
+  if(kiAvail===null)checkKI().then(()=>{if(document.body.contains(ov))draw()});
+}
 $("#homeBtn").onclick=()=>home();
 $("#langBtn").onclick=()=>{S.lang=EN_ON()?"de":"en";save();pickVoice();setHeader();if(CUR){labels(CUR.P,CUR.rel,CUR.younger)}home()};
 setHeader();
 
+const isTablet=()=>Math.min(innerWidth,innerHeight)>=600;
+const heartScale=()=>isTablet()?1.45:1;
 function show(html,isHome,compact){stage.classList.remove("screen");void stage.offsetWidth;stage.classList.add("screen");stage.classList.toggle("compact",!!compact);stage.innerHTML=html;$("#homeBtn").hidden=!!isHome;window.scrollTo(0,0)}
 const enable=el=>{el.disabled=false;el.style.opacity=1};
 const nudge=(title,sub)=>`<button class="nudge" data-create><span class="plus">+</span><div><b>${title}</b><span>${sub}</span></div></button>`;
@@ -1186,17 +1391,24 @@ function askScreen(role,p,g0,ai,withOther,pill){
   const title=guess?L("Was glaubst du?","What do you think?"):(GROUPS[group()].young?L("Wie doll?","How much?"):L("Wie sehr?","How much?"));
   const hint=guess?stripGuess(q):(kid?L("Je größer das Herz, desto stärker.","The bigger the heart, the stronger."):q);
   const meme=style()==="meme";
+  const hs=heartScale();
   show(`
   ${pill||""}
+  <div class="ask-grid">
+  <div class="ask-vis">
   ${meme?`<div class="duo"><div class="face" style="width:56px;height:56px;font-size:32px">${p.av}</div></div>${art(g)}`
        :`<div class="duo draw spin"><div class="face">${p.av}</div>${art(g)}</div><div class="gname">${esc(g.n)}</div>`}
+  </div>
+  <div class="ask-ctl">
   <div class="say"><h2>${title}</h2>${kid?sayBtn(q):""}</div>
   <p class="hint">${esc(hint)}</p>
   <div class="scale" role="radiogroup" aria-label="${L("Stärke, 1 bis 5","Strength, 1 to 5")}">
-    ${[1,2,3,4,5].map(i=>`<button role="radio" aria-checked="false" aria-label="${w[i-1]}" data-v="${i}">${heart(30+i*9)}</button>`).join("")}
+    ${[1,2,3,4,5].map(i=>`<button role="radio" aria-checked="false" aria-label="${w[i-1]}" data-v="${i}">${heart(Math.round((30+i*9)*hs))}</button>`).join("")}
   </div>
   ${withOther?`<button class="tiny" id="other">${DICE}<span>${L("Passt nicht? Andere Geste","Doesn't fit? Another one")}</span></button>`:""}
-  <div class="push"><button class="big primary" id="ok" disabled>${CHECK}<span>${L("Fertig","Done")}</span></button></div>`);
+  </div>
+  </div>
+  <div class="push"><button class="big primary" id="ok" disabled>${CHECK}<span>${L("Fertig","Done")}</span></button></div>`,false,isTablet());
   if(kid)speak(q);
   let v=0;
   stage.querySelectorAll(".scale button").forEach(b=>b.onclick=()=>{
@@ -1248,16 +1460,23 @@ function record(){
 }
 function reveal(onNext){
   const g=loc(R.g);
-  const row=v=>`<div class="mini">${[1,2,3,4,5].map(i=>`<span class="${i<=v?"on":""}">${heart(16+i*3)}</span>`).join("")}</div>`;
+  const ms=isTablet()?1.5:1;
+  const row=v=>`<div class="mini">${[1,2,3,4,5].map(i=>`<span class="${i<=v?"on":""}">${heart(Math.round((16+i*3)*ms))}</span>`).join("")}</div>`;
   const side=(p,v)=>`<div class="flip"><div class="flip-in">
     <div class="side"><div class="face">${p.av}</div><div class="cover">?</div></div>
     <div class="side back"><div class="face">${p.av}</div>${row(v)}</div></div></div>`;
   show(`
+  <div class="rev-grid">
+  <div class="rev-left">
   <div class="duo">${art(g,"sm")}</div>
   ${style()==="meme"?"":`<div class="gname">${esc(g.n)}</div>`}
   <div class="reveal">${side(CUR.P[R.gi],R.gv)}${side(CUR.P[R.ai],R.av)}</div>
+  </div>
+  <div class="rev-right">
   <div class="result" id="res" hidden></div>
-  <div class="push" id="act"><button class="big primary" id="open">${heart(28,"on")}<span>${L("Aufdecken","Reveal")}</span></button></div>`);
+  <div class="push" id="act"><button class="big primary" id="open">${heart(28,"on")}<span>${L("Aufdecken","Reveal")}</span></button></div>
+  </div>
+  </div>`,false,isTablet());
   $("#open").onclick=()=>{
     const f=stage.querySelectorAll(".flip");f[0].classList.add("open");setTimeout(()=>f[1].classList.add("open"),350);
     let [h,t,ad]=outcome();
@@ -2087,6 +2306,7 @@ function privacyPage(){
 }
 
 applyPlus();setGold();
+checkKI();
 track("view",true,true);
 home();
 </script>

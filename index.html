@@ -437,6 +437,17 @@ textarea#fbText:focus{outline:none;border-color:var(--heart)}
 .near-reveal{display:flex;justify-content:center;gap:22px;margin:14px 0}
 .nr-col{display:flex;flex-direction:column;align-items:center;gap:10px}
 .nr-col .face{width:64px;height:64px;font-size:38px}
+.near-tl{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.near-tl.locked{opacity:.85}
+.tl-row{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:4px 10px}
+.tl-who{font-size:22px;display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.tl-who small{font-size:12px;opacity:.7}
+.tl-dates{grid-column:2;font-size:12px;opacity:.7;text-align:right}
+.spark{width:100%;height:auto}
+.spark polyline{fill:none;stroke:var(--heart);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.spark circle{fill:var(--heart)}
+.spark .mid{stroke:var(--line);stroke-dasharray:4 4}
+.trend{text-align:center;font-weight:600;margin:4px 0}
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{border-radius:16px;padding:8px 4px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:14px;line-height:1.1}
@@ -1633,6 +1644,24 @@ function traits(A,B,r,done){
   wire("data-ro",v=>roles=v);wire("data-fr",v=>frame=v);
   $("#ok").onclick=()=>done(r.k+"|"+roles+"|"+frame);
 }
+/* Nähe-Verlauf (Dankeschön): Nähe-Runde alle NEAR_EVERY Spiele wiederholen, Verlauf im Album */
+const NEAR_EVERY=5;
+const nearDue=()=>!!(S.supporter&&TIP_ENABLED&&CUR.key&&(S.games||0)-((S.nearAt||{})[CUR.key]||0)>=NEAR_EVERY);
+function sparkline(log){
+  const W=240,H=64,px=10,n=log.length;
+  const X=i=>n<2?W/2:px+i*(W-2*px)/(n-1), Y=v=>H-8-(v-1)*(H-16)/4;
+  const pts=log.map((e,i)=>`${X(i).toFixed(1)},${Y(e[1]).toFixed(1)}`).join(" ");
+  return `<svg viewBox="0 0 ${W} ${H}" class="spark" aria-hidden="true"><line x1="0" x2="${W}" y1="${Y(3)}" y2="${Y(3)}" class="mid"/>${n>1?`<polyline points="${pts}"/>`:""}${log.map((e,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(e[1]).toFixed(1)}" r="${i===n-1?5:3.5}"/>`).join("")}</svg>`;
+}
+function nearTimeline(cur){
+  if(!TIP_ENABLED)return "";
+  const logs=Object.entries(S.nearLog||{}).filter(([k,l])=>k.split("|").includes(cur.id)&&l.length);
+  if(!logs.length)return "";
+  const fmt=t=>new Date(t).toLocaleDateString(EN_ON()?"en-GB":"de-DE",{day:"numeric",month:"short"});
+  if(!S.supporter)return `<div class="near-tl locked"><b>📈 ${L("Nähe-Verlauf","Closeness timeline")}</b><span class="hint">${L("Wie nah ihr euch über die Zeit fühlt, gehört zum Dankeschön-Paket.","How close you feel over time is part of the thank-you pack.")}</span></div>`;
+  return `<div class="near-tl"><b>📈 ${L("Nähe-Verlauf","Closeness timeline")}</b>${logs.map(([k,l])=>{const o=person(k.split("|").find(x=>x!==cur.id));if(!o)return "";
+    return `<div class="tl-row"><span class="tl-who">${cur.av} ${o.av}<small>${esc(o.name)}</small></span>${sparkline(l)}<small class="tl-dates">${fmt(l[0][0])}${fmt(l[l.length-1][0])!==fmt(l[0][0])?" – "+fmt(l[l.length-1][0]):""} · ${l.length} ${L(l.length>1?"Runden":"Runde",l.length>1?"rounds":"round")}</small></div>`}).join("")}</div>`;
+}
 /* ---------- Aufwärmrunde: Wie nah seid ihr euch? (beide heimlich, dann gemeinsam aufdecken) ---------- */
 const circles=(n,w=84)=>{const d=40-n*9;const cx=42-d/2;return `<svg viewBox="0 0 84 44" width="${w}" aria-hidden="true"><circle cx="${cx}" cy="22" r="16" class="c1"/><circle cx="${cx+d}" cy="22" r="16" class="c2"/></svg>`};
 function nearRound(next){
@@ -1659,8 +1688,10 @@ function nearRound(next){
   };
   const reveal=()=>{
     const [a,b]=res, diff=Math.abs(a-b);
-    if(CUR.key){S.near5=S.near5||{};S.near5[CUR.key]=[a,b];save()}
+    const prevLog=CUR.key&&S.nearLog&&S.nearLog[CUR.key], prev=prevLog&&prevLog.length?prevLog[prevLog.length-1][1]:null;
+    if(CUR.key){S.near5=S.near5||{};S.near5[CUR.key]=[a,b];S.nearLog=S.nearLog||{};(S.nearLog[CUR.key]=S.nearLog[CUR.key]||[]).push([Date.now(),(a+b)/2]);S.nearAt=S.nearAt||{};S.nearAt[CUR.key]=S.games||0;save()}
     CUR.near=(a+b)/2;
+    const trend=S.supporter&&prev!=null?(CUR.near-prev>=.5?L("Ihr seid euch nähergekommen! 💛","You've grown closer! 💛"):prev-CUR.near>=.5?L("Etwas anders als beim letzten Mal. Nähe schwankt, das ist ganz normal.","A little different from last time. Closeness varies, that's completely normal."):L("Genauso nah wie beim letzten Mal.","Just as close as last time.")):"";
     // Immer wohlwollend: Gemeinsamkeit zuerst, Unterschiede als Gesprächsanlass, nie als Urteil
     const both=Math.min(a,b), msg=diff===0?L("Genau gleich gesehen!","Seen exactly the same!")
       :both>=4?L("Ihr fühlt euch beide nah!","You both feel close!")
@@ -1673,6 +1704,7 @@ function nearRound(next){
     <div class="say"><h2>${msg}</h2></div>
     <div class="near-reveal">${CUR.P.map((p,i)=>`<div class="nr-col"><span class="face">${p.av}</span>${circles(res[i]-1,120)}</div>`).join("")}</div>
     <p class="hint">${sub}</p>
+    ${trend?`<p class="trend">📈 ${trend}</p>`:""}
     <div class="push"><button class="big primary" id="go">${ARROW}<span>${L("Los geht's","Let's play")}</span></button></div>`);
     if(diff===0||both>=4)burst(14);
     $("#go").onclick=next;
@@ -1686,7 +1718,7 @@ function finish(A,B,rel,next){
   CUR.end=CUR.g==="lernen"?{emoji:"spruch",meme:"meme",line:"idee"}[CUR.st]:ENDING[CUR.g];
   CUR.total=LENGTH[CUR.end][0];CUR.res=[];
   if(CUR.key){S.lastPair=[A.id,B.id];save()}
-  if(!M.nr&&CUR.near==null)return nearRound(next);
+  if(!M.nr&&(CUR.near==null||nearDue()))return nearRound(next);
   next();
 }
 
@@ -1944,12 +1976,13 @@ function album(pid){
   <div class="people">${people.map(p=>`<button class="chip" data-p="${p.id}" aria-pressed="${p.id===cur.id}"><span class="st-ic">${p.av}</span>${esc(p.name)}</button>`).join("")}</div>
   ${items.length?`${find}<div class="list">${items.map(x=>`<div class="item">${thumb(x)}<div class="t"><div class="n">${esc(x.n)}</div><div class="g">${x.by||""} ${L("geschätzt","guessed")} ${row(x.a,6)}</div></div>${row(x.k,12)}</div>`).join("")}</div>`
   :`<div class="empty"><span class="e">${cur.av}</span><h2>${L("Noch leer","Still empty")}</h2><p class="hint">${L(`Sobald ${esc(cur.name)} eine Frage beantwortet hat, steht hier, was am meisten bedeutet.`,`Once ${esc(cur.name)} has answered a question, you'll see here what matters most.`)}</p></div>`}
+  ${nearTimeline(cur)}
   ${nudge(L("Eigenes Bonding erstellen","Create your own bonding"),ownCount()?L(`${ownCount()} eigene schon dabei. Was fehlt noch?`,`${ownCount()} of your own so far. What's missing?`):L("Was macht nur ihr zwei miteinander?","What do only you two do together?"))}
   ${ownCount()?`<button class="tiny" id="mg">${L("Eigene Bondings verwalten","Manage your bondings")}</button>`:""}
   ${!TIP_ENABLED?"":S.supporter?`<div class="supporter"><span>💛 ${L("Unterstützer · Dankeschön-Paket aktiv","Supporter · thank-you pack active")}</span>
       <button class="chip" id="goldBtn" aria-pressed="${!!S.gold}">${L("Goldene Herzen","Golden hearts")}</button></div>
     <div id="gateSlot"><button class="support-btn" id="forParents"><span class="sb-ic" aria-hidden="true">☕</span><span class="sb-t"><b>${L("Für Eltern: nochmal unterstützen","For parents: support again")}</b><span>${L("Hilft bei neuen Fragen und Illustrationen","Helps with new questions and illustrations")}</span></span><span class="sb-go" aria-hidden="true">›</span></button></div>`
-    :S.rounds>=5?`<div id="gateSlot"><button class="support-btn" id="forParents"><span class="sb-ic" aria-hidden="true">☕</span><span class="sb-t"><b>${L("Für Eltern: mBond unterstützen","For parents: support mBond")}</b><span>${L(`Dankeschön: ${PLUS_COUNT} neue Fragen und goldene Herzen`,`Thank-you: ${PLUS_COUNT} new questions and golden hearts`)}</span></span><span class="sb-go" aria-hidden="true">›</span></button></div>`:""}
+    :S.rounds>=5?`<div id="gateSlot"><button class="support-btn" id="forParents"><span class="sb-ic" aria-hidden="true">☕</span><span class="sb-t"><b>${L("Für Eltern: mBond unterstützen","For parents: support mBond")}</b><span>${L(`Dankeschön: ${PLUS_COUNT} neue Fragen, Nähe-Verlauf und goldene Herzen`,`Thank-you: ${PLUS_COUNT} new questions, closeness timeline and golden hearts`)}</span></span><span class="sb-go" aria-hidden="true">›</span></button></div>`:""}
   <div class="push"><button class="big primary" id="play">${ARROW}<span>${L("Spielen","Play")}</span></button></div>`);
   wireTip();
   stage.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>album(b.dataset.p));
@@ -2082,7 +2115,7 @@ function endGame(){
   ${body}
   ${allowed?`<div id="tipSlot">${S.supporter
     ?`<p class="thanks-line">💛 ${L("Danke, dass ihr mBond unterstützt!","Thank you for supporting mBond!")}</p><button class="tiny" id="supportLink">☕ ${hasMinor()?L("Für Eltern: nochmal unterstützen","For parents: support again"):L("Nochmal unterstützen","Support again")}</button>`
-    :`<button class="support-btn" id="supportLink"><span class="sb-ic" aria-hidden="true">☕</span><span class="sb-t"><b>${hasMinor()?L("Für Eltern: mBond unterstützen","For parents: support mBond"):L("mBond unterstützen","Support mBond")}</b><span>${L(`Dankeschön: ${PLUS_COUNT} neue Fragen und goldene Herzen`,`Thank-you: ${PLUS_COUNT} new questions and golden hearts`)}</span></span><span class="sb-go" aria-hidden="true">›</span></button>`}</div>`:""}
+    :`<button class="support-btn" id="supportLink"><span class="sb-ic" aria-hidden="true">☕</span><span class="sb-t"><b>${hasMinor()?L("Für Eltern: mBond unterstützen","For parents: support mBond"):L("mBond unterstützen","Support mBond")}</b><span>${L(`Dankeschön: ${PLUS_COUNT} neue Fragen, Nähe-Verlauf und goldene Herzen`,`Thank-you: ${PLUS_COUNT} new questions, closeness timeline and golden hearts`)}</span></span><span class="sb-go" aria-hidden="true">›</span></button>`}</div>`:""}
   ${FEEDBACK_ON&&!S.fbDone&&!S.fbLater?`<button class="support-btn fb-btn" id="fbEnd"><span class="sb-ic" aria-hidden="true">💬</span><span class="sb-t"><b>${L("Kurzes Feedback für die Testphase?","Quick feedback for the test phase?")}</b><span>${L("Für Erwachsene · 9 kurze Fragen · etwa 1–2 Minuten","For adults · 9 short questions · about 1–2 minutes")}</span></span><span class="sb-go" aria-hidden="true">›</span></button>`:""}
   <div class="push">
     <button class="big soft" id="share">${SHARE}<span>${L("Ergebnis teilen","Share result")}</span></button>
@@ -2502,6 +2535,9 @@ const PLUS_PACK={
  "teen:y":[["plus_wlan","","WLAN-Passwort","wenn das WLAN-Passwort ohne Diskussion verraten wird","key","Ich: Wie ist das WLAN-Passwort?","Antwort: Sag ich dir. Einfach so.","w"],["plus_ausschlafen","","Ausschlafen","wenn man am Wochenende ausschlafen darf","moon","Samstag, 11 Uhr","Niemand saugt vor meiner Tür","w"],["plus_entscheiden","","Selbst entscheiden","wenn eine große Entscheidung zugetraut wird","compass","„Entscheide du“","Ich: …wirklich?","e"]],
  "teen:o":[["plus_kochen","","Bekocht werden","wenn das Teen etwas kocht","bowl","Teen kocht Abendessen","Rauchmelder bleibt still","w"],["plus_foto","","Gemeinsames Foto","wenn freiwillig ein Foto zusammen gemacht wird","camera","Teen will ein Foto mit mir","und postet es sogar","s"],["plus_nachfrage","","Nachfragen","wenn zurückgefragt wird, wie der Tag war","chat","Teen fragt: Wie war dein Tag?","Ich: muss mich kurz setzen","e"]],
  "jung:y":[["plus_paket","","Paket von zu Hause","wenn ein Paket von zu Hause kommt","gift","s"],["plus_vorbild","","Vorbild sein","wenn jemand sagt: Das habe ich von dir gelernt","star","e"],["plus_tradition","","Familientradition","wenn eine alte Familientradition weiterlebt","house","s"]],
+ "lernen:y":[["plus_staerke","🔎","Stärke entdecken","wenn eine Stärke entdeckt wird, von der man selbst nichts wusste","star","Ich: kann gar nichts besonders","Antwort: Doch. Das hier.","e"],["plus_ausnahme","🎉","Kleine Ausnahme","wenn es nach viel Mühe eine kleine Belohnung gibt","gift","Alle haben hart gearbeitet","Heute: zehn Minuten früher Schluss","w"],["plus_erinnern","📸","Erinnerung","wenn ein gemeinsamer Erfolg festgehalten wird","camera","Wir haben es geschafft","Beweisfoto inklusive","s"]],
+ "lernen:o":[["plus_gelernt","🌱","Gelernt!","wenn etwas Erklärtes plötzlich klappt","sun","Monatelang erklärt","Heute: Es klappt einfach","s"],["plus_weitergeben","🔁","Weitergeben","wenn Gelerntes an andere weitergegeben wird","chat","Jemand erklärt es den Jüngeren","mit meinen Worten","e"],["plus_spitzname","😄","Insider","wenn ein Insider-Witz entsteht","music","Ein Witz aus der Stunde","wird jetzt jede Woche zitiert","w"]],
+ "team":[["plus_teamritual","🥨","Team-Ritual","wenn ein kleines Ritual entsteht, zum Beispiel Brezel-Freitag","cutlery","w"],["plus_rueckblick","🏔️","Rückblick","wenn gemeinsam auf ein geschafftes Projekt geschaut wird","summit","e"],["plus_abschied","💌","Gute Wünsche","wenn es vor einem freien Tag gute Wünsche gibt","heart","s"]],
  "jung:o":[["plus_rezept","","Nach dem Rezept fragen","wenn nach einem Familienrezept gefragt wird","bowl","s"],["plus_beibringen","","Neues zeigen","wenn etwas Neues beigebracht wird","phone","w"],["plus_spaetdank","","Später Dank","wenn für etwas von früher gedankt wird","heart","e"]],
  "kinder":[["plus_geheimbund","🏴‍☠️","Geheimbund","wenn ihr einen Geheimbund gründet","w"],["plus_mut","💪","Mut machen","wenn jemand sagt: Du schaffst das","e"],["plus_ausleihen","🧸","Lieblingsding leihen","wenn das Lieblingsspielzeug ausgeliehen wird","s"]],
  "paar":[["plus_kaffeebett","","Kaffee am Bett","wenn der Tag mit einem Kaffee am Bett beginnt","cup","s"],["plus_kuechentanz","","Küchentanz","wenn spontan in der Küche getanzt wird","music","w"],["plus_traeume","","Träume teilen","wenn über gemeinsame Träume gesprochen wird","sun","e"]]
@@ -2536,13 +2572,22 @@ Object.assign(EN,{
 "kinder:plus_ausleihen":["Lending a favourite","when a favourite toy is lent out"],
 "paar:plus_kaffeebett":["Coffee in bed","when the day starts with coffee in bed"],
 "paar:plus_kuechentanz":["Kitchen dance","when you dance in the kitchen out of nowhere"],
-"paar:plus_traeume":["Sharing dreams","when you talk about shared dreams"]
+"paar:plus_traeume":["Sharing dreams","when you talk about shared dreams"],
+"lernen:y:plus_staerke":["Discovering a strength","when a strength is discovered that nobody knew about","Me: I'm not good at anything","Answer: Yes you are. This."],
+"lernen:y:plus_ausnahme":["Small treat","when there's a small reward after a lot of effort","Everyone worked hard","Today: ten minutes early finish"],
+"lernen:y:plus_erinnern":["Memory","when a shared success is captured","We did it","Photo evidence included"],
+"lernen:o:plus_gelernt":["Got it!","when something explained suddenly works","Explained for months","Today: it just works"],
+"lernen:o:plus_weitergeben":["Passing it on","when what was learned is passed on to others","Someone explains it to the younger ones","in my words"],
+"lernen:o:plus_spitzname":["Inside joke","when an inside joke is born","A joke from the lesson","now quoted every week"],
+"team:plus_teamritual":["Team ritual","when a little ritual starts, like pretzel Friday"],
+"team:plus_rueckblick":["Looking back","when you look back together on a finished project"],
+"team:plus_abschied":["Good wishes","when there are good wishes before a day off"]
 });
 const PLUS_COUNT=Object.values(PLUS_PACK).reduce((n,l)=>n+l.length,0);
 let plusApplied=false;
 function applyPlus(){
   if(plusApplied||!S.supporter)return;plusApplied=true;
-  const target={"klein:y":SETS.klein,"klein:o":SWAP.klein,"kind:y":SETS.kind,"kind:o":SWAP.kind,"teen:y":SETS.teen,"teen:o":SWAP.teen,"jung:y":SETS.jung,"jung:o":SWAP.jung,"kinder":SYM.kinder,"paar":SYM.paar};
+  const target={"klein:y":SETS.klein,"klein:o":SWAP.klein,"kind:y":SETS.kind,"kind:o":SWAP.kind,"teen:y":SETS.teen,"teen:o":SWAP.teen,"jung:y":SETS.jung,"jung:o":SWAP.jung,"kinder":SYM.kinder,"paar":SYM.paar,"lernen:y":SETS.lernen,"lernen:o":SWAP.lernen,"team":SYM.team};
   for(const [k,list] of Object.entries(PLUS_PACK)){
     const t=TAGS[k]||(TAGS[k]={w:"",e:""});
     for(const row of list){
@@ -2563,7 +2608,7 @@ function tipPopup(n){
     <svg viewBox="0 0 240 120" aria-hidden="true" class="pop-hearts"><path d="${HEART}" transform="translate(40 4) scale(4.6)" fill="var(--accent)"/><path d="${HEART}" transform="translate(100 12) scale(4.6)" fill="var(--heart)" opacity=".92"/></svg>
     <span class="h2like" style="text-align:center">${L(`Schon ${n} Spiele zusammen!`,`${n} games together already!`)}</span>
     <p class="hint" style="margin:0">${L("mBond ist kostenlos und ohne Werbung. Ihr wollt uns unterstützen und dabei neue Fragen freischalten? Als Dankeschön gibt es:","mBond is free and ad-free. Want to support us and unlock new questions? As a thank-you you get:")}</p>
-    <ul class="perks"><li>✨ ${L(`${PLUS_COUNT} neue Fragen für alle Themenwelten`,`${PLUS_COUNT} new questions for every theme`)}</li><li>💛 ${L("Goldene Herzen","Golden hearts")}</li></ul>
+    <ul class="perks"><li>✨ ${L(`${PLUS_COUNT} neue Fragen für alle Themenwelten`,`${PLUS_COUNT} new questions for every theme`)}</li><li>📈 ${L("Nähe-Verlauf: Seht, wie ihr euch über die Zeit näherkommt","Closeness timeline: see how you grow closer over time")}</li><li>💛 ${L("Goldene Herzen","Golden hearts")}</li></ul>
     <div id="popStep">
       <button class="big primary" id="wantSupport">💛<span>${L("Unterstützen und freischalten","Support and unlock")}</span></button>
     </div>
@@ -2588,7 +2633,7 @@ function unlockPlus(){
   const ov=document.createElement("div");ov.className="share-ov";
   ov.innerHTML=`<div class="share-box pop-box">
     <span class="h2like" style="text-align:center">💛 ${L("Danke!","Thank you!")}</span>
-    <p class="hint" style="margin:0">${L(`${PLUS_COUNT} neue Fragen sind ab dem nächsten Spiel dabei, und eure Herzen leuchten jetzt golden. Im Album könnt ihr die goldenen Herzen jederzeit ausschalten.`,`${PLUS_COUNT} new questions join from your next game, and your hearts now shine gold. You can switch golden hearts off in the album at any time.`)}</p>
+    <p class="hint" style="margin:0">${L(`${PLUS_COUNT} neue Fragen sind ab dem nächsten Spiel dabei, und eure Herzen leuchten jetzt golden. Alle paar Spiele kommt die Nähe-Runde wieder, und im Album seht ihr euren Nähe-Verlauf. Die goldenen Herzen könnt ihr dort jederzeit ausschalten.`,`${PLUS_COUNT} new questions join from your next game, and your hearts now shine gold. Every few games the closeness round comes back, and the album shows your closeness timeline. You can switch golden hearts off there at any time.`)}</p>
     <button class="big primary" id="thx">${CHECK}<span>${L("Weiter","Continue")}</span></button></div>`;
   document.body.appendChild(ov);$("#thx").onclick=()=>ov.remove();
   if(slot)slot.innerHTML=`<p class="thanks-line">💛 ${L("Danke, dass ihr mBond unterstützt!","Thank you for supporting mBond!")}</p>`;

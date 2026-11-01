@@ -236,6 +236,10 @@ button.who-box .face{width:84px;height:84px;font-size:50px}
 .big span{white-space:nowrap}
 @media (max-width:380px){.row .big{font-size:18px;padding-inline:14px}}
 
+.intro-box{display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px;border:2px dashed var(--accent);border-radius:30px;background:var(--surface);padding:32px 24px}
+.intro-plus{width:72px;height:72px;border-radius:20px;background:var(--accent);color:#262625;display:grid;place-items:center}
+.intro-plus svg{width:38px;height:38px}
+
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{border-radius:16px;padding:8px 4px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:14px;line-height:1.1}
@@ -1038,16 +1042,15 @@ function intro(){
   const d=L("Ein geheimer Handschlag, das Sonntagsfrühstück, ein Spitzname. Legt eure Rituale als eigene Bondings an. Sie sorgen oft für die größten Aha-Momente.","A secret handshake, Sunday breakfast, a nickname. Add your rituals as your own bondings. They often bring the biggest aha moments.");
   const t=L("Was macht nur ihr zwei?","What do only you two do?");
   show(`
-  <div class="handoff" style="border-color:var(--accent)">
-    <span class="plus" style="width:72px;height:72px;font-size:44px;border-radius:20px">+</span>
-    <div class="say"><span class="h2like" style="text-align:center">${t}</span>${sayBtn(t+" "+d)}</div>
+  <div class="intro-box">
+    <span class="intro-plus" aria-hidden="true">${PLUS}</span>
+    <span class="h2like">${t}</span>
     <p class="hint">${d}</p>
   </div>
   <div class="push">
     <button class="big primary" id="mk">${PLUS}<span>${L("Bonding erstellen","Create a bonding")}</span></button>
     <button class="big soft" id="skip"><span>${L("Erst mal spielen","Just play first")}</span></button>
-  </div>`);
-  speak(t+" "+d);
+  </div>`,false,true);
   $("#mk").onclick=()=>create(start);
   $("#skip").onclick=start;
 }

@@ -887,7 +887,7 @@ function setHeader(){
 $("#soundBtn").onclick=()=>{
   if(!TTS_OK){ttsWarned=false;ttsMissing();return}
   S.sound=!S.sound;save();setHeader();
-  if(S.sound){unlockTTS();speak(L("Vorlesen ist an.","Reading aloud is on."),true)}else speechSynthesis.cancel();
+  if(!S.sound)speechSynthesis.cancel();
 };
 $("#homeBtn").onclick=()=>home();
 $("#langBtn").onclick=()=>{S.lang=EN_ON()?"de":"en";save();pickVoice();setHeader();if(CUR){labels(CUR.P,CUR.rel,CUR.younger)}home()};
@@ -953,7 +953,7 @@ function demo(after){
     show(`
     <div class="dots" aria-hidden="true">${steps.map((_,k)=>`<span class="${k===i?"on":""}"></span>`).join("")}</div>
     <div class="demo-stage">${s.v}</div>
-    <div class="say"><h2>${s.t}</h2>${sayBtn(s.t+". "+s.d)}</div>
+    <div class="say"><h2>${s.t}</h2></div>
     <p class="hint">${esc(s.d)}</p>
     <div class="push">
       <button class="big primary" id="nx">${last?CHECK:ARROW}<span>${last?L("Selbst ausprobieren","Try it yourself"):L("Weiter","Next")}</span></button>
@@ -1095,14 +1095,14 @@ function askScreen(role,p,g0,ai,withOther,pill){
   ${pill||""}
   ${meme?`<div class="duo"><div class="face" style="width:56px;height:56px;font-size:32px">${p.av}</div></div>${art(g)}`
        :`<div class="duo draw spin"><div class="face">${p.av}</div>${art(g)}</div><div class="gname">${esc(g.n)}</div>`}
-  <div class="say"><h2>${title}</h2>${sayBtn(q)}</div>
+  <div class="say"><h2>${title}</h2>${kid?sayBtn(q):""}</div>
   <p class="hint">${esc(hint)}</p>
   <div class="scale" role="radiogroup" aria-label="${L("Stärke, 1 bis 5","Strength, 1 to 5")}">
     ${[1,2,3,4,5].map(i=>`<button role="radio" aria-checked="false" aria-label="${w[i-1]}" data-v="${i}">${heart(30+i*9)}</button>`).join("")}
   </div>
   ${withOther?`<button class="tiny" id="other">${DICE}<span>${L("Passt nicht? Andere Geste","Doesn't fit? Another one")}</span></button>`:""}
   <div class="push"><button class="big primary" id="ok" disabled>${CHECK}<span>${L("Fertig","Done")}</span></button></div>`);
-  speak(kid?q:g.n);
+  if(kid)speak(q);
   let v=0;
   stage.querySelectorAll(".scale button").forEach(b=>b.onclick=()=>{
     v=+b.dataset.v;
@@ -1129,7 +1129,6 @@ function handoff(){
     <span class="h2like">${who}</span>
     <p class="hint">${L("Gib das Handy weiter. Dann auf das Gesicht tippen.","Pass the phone on. Then tap the face.")}</p>
   </button>`);
-  speak(p.anon?L("Gib das Handy weiter.","Pass the phone on."):L(`Gib das Handy an ${p.name}.`,`Pass the phone to ${p.name}.`));
   $("#go").onclick=()=>ask("answer");
 }
 
@@ -1164,14 +1163,13 @@ function reveal(onNext){
   <div class="reveal">${side(CUR.P[R.gi],R.gv)}${side(CUR.P[R.ai],R.av)}</div>
   <div class="result" id="res" hidden></div>
   <div class="push" id="act"><button class="big primary" id="open">${heart(28,"on")}<span>${L("Aufdecken","Reveal")}</span></button></div>`);
-  speak(L("Seid ihr bereit? Dann deckt auf!","Ready? Then reveal!"));
   $("#open").onclick=()=>{
     const f=stage.querySelectorAll(".flip");f[0].classList.add("open");setTimeout(()=>f[1].classList.add("open"),350);
     let [h,t,ad]=outcome();
     const before=record();
     if(before&&before.k!==R.av)t+=L(` Letztes Mal waren es ${before.k} Herzen, jetzt ${R.av}.`,` Last time it was ${before.k} hearts, now ${R.av}.`);
     setTimeout(()=>{
-      const r=$("#res");r.hidden=false;r.innerHTML=`<h2>${h}</h2><p class="hint">${esc(t)}</p>`;speak(h+" "+t);
+      const r=$("#res");r.hidden=false;r.innerHTML=`<h2>${h}</h2><p class="hint">${esc(t)}</p>`;
       if(ad<=1)burst(ad===0?22:12);
       const showNudge=!onNext&&(S.rounds%2===0||!ownCount()&&S.rounds%3===1);
       const last=M.round?M.round.n>=M.round.total:CUR.n>=CUR.total;
@@ -1268,7 +1266,7 @@ function album(pid){
   const top=[...items].sort((x,y)=>Math.abs(y.k-y.a)-Math.abs(x.k-x.a))[0];
   const find=top&&Math.abs(top.k-top.a)>=2?`<div class="find">${thumb(top)}<div><b>${L("Größte Entdeckung","Biggest discovery")}: ${esc(top.n)}</b><span>${L(`${top.by||""} hat ${top.a} ${top.a>1?"Herzen":"Herz"} geschätzt, ${cur.av} fühlt ${top.k}.`,`${top.by||""} guessed ${top.a} heart${top.a>1?"s":""}, ${cur.av} feels ${top.k}.`)}</span></div></div>`:"";
   show(`
-  <div class="say"><h2>${L("Album","Album")}</h2>${sayBtn(L(`Hier siehst du, was ${cur.name} am meisten bedeutet.`,`Here you can see what matters most to ${cur.name}.`))}</div>
+  <div class="say"><h2>${L("Album","Album")}</h2></div>
   <div class="people">${people.map(p=>`<button class="chip" data-p="${p.id}" aria-pressed="${p.id===cur.id}"><span class="st-ic">${p.av}</span>${esc(p.name)}</button>`).join("")}</div>
   ${items.length?`${find}<div class="list">${items.map(x=>`<div class="item">${thumb(x)}<div class="t"><div class="n">${esc(x.n)}</div><div class="g">${x.by||""} ${L("geschätzt","guessed")} ${row(x.a,6)}</div></div>${row(x.k,12)}</div>`).join("")}</div>`
   :`<div class="empty"><span class="e">${cur.av}</span><h2>${L("Noch leer","Still empty")}</h2><p class="hint">${L(`Sobald ${esc(cur.name)} eine Frage beantwortet hat, steht hier, was am meisten bedeutet.`,`Once ${esc(cur.name)} has answered a question, you'll see here what matters most.`)}</p></div>`}
@@ -1372,7 +1370,7 @@ function endGame(){
   }
   show(`
   <div class="duo"><span class="face">${A.av}</span><span class="face">${B.av}</span></div>
-  <div class="say"><h2>${HEAD[lg][tier]}</h2>${sayBtn(speakText)}</div>
+  <div class="say"><h2>${HEAD[lg][tier]}</h2></div>
   <p class="hint">${L(`${close} von ${res.length} Fragen fast gleich eingeschätzt`,`${close} of ${res.length} questions guessed almost the same`)}${surprise&&Math.abs(surprise.av-surprise.gv)>=2?L(` · größte Überraschung: ${esc(nm(surprise))}`,` · biggest surprise: ${esc(nm(surprise))}`):""}</p>
   ${body}
   <div class="push">
@@ -1380,7 +1378,6 @@ function endGame(){
     ${!M.nr||M.host?`<button class="big soft" id="more">${PLUS}<span>${L(`${ext} Fragen mehr`,`${ext} more questions`)}</span></button>`:`<p class="hint">${L("Verlängern kann das Gerät, das den Code erstellt hat.","The device that created the code can extend the game.")}</p>`}
     <button class="big primary" id="done">${CHECK}<span>${L("Fertig","Done")}</span></button>
   </div>`);
-  speak(speakText);
   if(tier==="hoch")burst(26);
   $("#share").onclick=shareResult;
   const more=$("#more");

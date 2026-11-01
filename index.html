@@ -427,7 +427,7 @@ textarea#fbText:focus{outline:none;border-color:var(--heart)}
 .trait-row .chip .st-ic{font-size:24px}
 .trait-row .chip[aria-pressed="true"]{border-color:var(--heart);background:var(--heart-soft)}
 .trait-hint{margin:-2px 0 6px;font-size:13px;opacity:.7}
-.near-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:8px}
+.near-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:8px}
 .near-opt{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:12px 2px;display:grid;place-items:center;cursor:pointer}
 .near-opt:active{transform:scale(.95);border-color:var(--heart)}
 .near-opt svg,.near-reveal svg{max-width:100%;height:auto}
@@ -1139,17 +1139,17 @@ function makeCtx(A,B,rel){
   }
   const idea=asym?(frame==="w"?"lernen":"eltern"):(frame==="w"?"kollegen":(["partner","geschwister"].includes(r.idea)?r.idea:"freunde"));
   const key=(A.id&&B.id)?pairKey(A.id,B.id):null;
-  const nr=key&&S.near&&S.near[key];
+  const nr=key&&S.near5&&S.near5[key];
   const ctx={P,rel,base:r.k,roles,frame,asym,older,younger,g,g2,st,young,love:asym&&g!=="lernen",home:!!r.home&&asym&&frame!=="w",idea,
-    near:nr?(nr[0]+nr[1])/2:(pr.light?2:null),n:0,played:{},key};
+    near:nr?(nr[0]+nr[1])/2:(pr.light?1.5:null),n:0,played:{},key};
   labels(P,rel,younger,asym);
   return ctx;
 }
 /* Gewichtung je nach Nähe: wenig Nähe = leichter, viel Nähe = tiefer */
 function weights(){
   const W={...WEIGHTS[CUR.g]}, n=CUR.near;
-  if(n!=null&&n<=2){W.s+=10;W.w+=15;W.e=Math.max(5,W.e-25)}
-  else if(n!=null&&n>=6){W.s=Math.max(5,W.s-5);W.w=Math.max(5,W.w-10);W.e+=15}
+  if(n!=null&&n<=1.5){W.s+=10;W.w+=15;W.e=Math.max(5,W.e-25)}
+  else if(n!=null&&n>=4.5){W.s=Math.max(5,W.s-5);W.w=Math.max(5,W.w-10);W.e+=15}
   return W;
 }
 const group=()=>CUR?CUR.g:"kind";
@@ -1634,7 +1634,7 @@ function traits(A,B,r,done){
   $("#ok").onclick=()=>done(r.k+"|"+roles+"|"+frame);
 }
 /* ---------- Aufwärmrunde: Wie nah seid ihr euch? (beide heimlich, dann gemeinsam aufdecken) ---------- */
-const circles=(n,w=84)=>{const d=40-n*6;const cx=42-d/2;return `<svg viewBox="0 0 84 44" width="${w}" aria-hidden="true"><circle cx="${cx}" cy="22" r="16" class="c1"/><circle cx="${cx+d}" cy="22" r="16" class="c2"/></svg>`};
+const circles=(n,w=84)=>{const d=40-n*9;const cx=42-d/2;return `<svg viewBox="0 0 84 44" width="${w}" aria-hidden="true"><circle cx="${cx}" cy="22" r="16" class="c1"/><circle cx="${cx+d}" cy="22" r="16" class="c2"/></svg>`};
 function nearRound(next){
   const res=[];
   const pick=i=>{
@@ -1642,7 +1642,7 @@ function nearRound(next){
     show(`
     <div class="say"><h2>${L("Wie nah seid ihr euch?","How close are you?")}</h2></div>
     <p class="hint" id="nq">${L(`Welches Bild passt zu dir und ${esc(o.anon?o.dat:o.name)}? Ganz heimlich!`,`Which picture fits you and ${esc(o.anon?o.nom:o.name)}? In secret!`)}</p>
-    <div class="near-grid">${[0,1,2,3,4,5,6].map(n=>`<button class="near-opt" data-n="${n+1}" aria-label="${n+1} ${L("von","of")} 7">${circles(n)}</button>`).join("")}</div>
+    <div class="near-grid">${[0,1,2,3,4].map(n=>`<button class="near-opt" data-n="${n+1}" aria-label="${n+1} ${L("von","of")} 5">${circles(n)}</button>`).join("")}</div>
     <div class="near-ends"><span>${L("weit weg","far apart")}</span><span>${L("ganz nah","very close")}</span></div>`);
     if(isKid(p))speakSeq([{text:L(`Wie nah seid ihr euch, du und ${o.anon?o.nom:o.name}? Tippe auf ein Bild. Links: weit weg. Rechts: ganz nah.`,`How close are you and ${o.anon?o.nom:o.name}? Tap a picture. Left: far apart. Right: very close.`),el:$("#nq")}],true);
     stage.querySelectorAll("[data-n]").forEach(b=>b.onclick=()=>{res[i]=+b.dataset.n;i===0?hand(1):reveal()});
@@ -1659,15 +1659,22 @@ function nearRound(next){
   };
   const reveal=()=>{
     const [a,b]=res, diff=Math.abs(a-b);
-    if(CUR.key){S.near=S.near||{};S.near[CUR.key]=[a,b];save()}
+    if(CUR.key){S.near5=S.near5||{};S.near5[CUR.key]=[a,b];save()}
     CUR.near=(a+b)/2;
-    const msg=diff===0?L("Genau gleich gesehen!","Seen exactly the same!"):diff===1?L("Fast gleich gesehen.","Almost the same."):L("Ihr seht das unterschiedlich. Erzählt euch mal, warum!","You see it differently. Tell each other why!");
+    // Immer wohlwollend: Gemeinsamkeit zuerst, Unterschiede als Gesprächsanlass, nie als Urteil
+    const both=Math.min(a,b), msg=diff===0?L("Genau gleich gesehen!","Seen exactly the same!")
+      :both>=4?L("Ihr fühlt euch beide nah!","You both feel close!")
+      :diff<=1?L("Ganz ähnlich gesehen!","Seen very similarly!")
+      :L("Zwei Blickwinkel, eine Verbindung!","Two points of view, one bond!");
+    const sub=diff===0?L("Danach richten sich jetzt eure Fragen.","Your questions now adapt to this.")
+      :diff<=1?L("Fast dasselbe Bild. Danach richten sich jetzt eure Fragen.","Almost the same picture. Your questions now adapt to this.")
+      :L("Jede Sicht ist richtig. Wer mag, erzählt, was hinter dem eigenen Bild steckt.","Every view is right. If you like, share what's behind your picture.");
     show(`
     <div class="say"><h2>${msg}</h2></div>
     <div class="near-reveal">${CUR.P.map((p,i)=>`<div class="nr-col"><span class="face">${p.av}</span>${circles(res[i]-1,120)}</div>`).join("")}</div>
-    <p class="hint">${L("Danach richten sich jetzt eure Fragen.","Your questions now adapt to this.")}</p>
+    <p class="hint">${sub}</p>
     <div class="push"><button class="big primary" id="go">${ARROW}<span>${L("Los geht's","Let's play")}</span></button></div>`);
-    if(diff===0)burst(14);
+    if(diff===0||both>=4)burst(14);
     $("#go").onclick=next;
   };
   hand(0);

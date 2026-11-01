@@ -1429,7 +1429,7 @@ function endGame(){
   const tops=CUR.P.map((p,i)=>[...res].filter(r=>r.ai===i).sort((a,b)=>b.av-a.av)[0]);
   const A=CUR.P[0],B=CUR.P[1];
   if(!M.nr){S.session=null}
-  if(!CUR.counted){CUR.counted=true;S.games=(S.games||0)+1}
+  if(!CUR.counted){CUR.counted=true;S.games=(S.games||0)+1;track(M.nr?"game-end-two-devices":"game-end")}
   save();
   const allowed=tipAllowed(), games=S.games;
   const popupDue=allowed&&adultsOnly()&&!S.supporter&&games>=TIPCFG.firstPopup&&(!S.lastPopup||games-S.lastPopup>=TIPCFG.popupEvery);
@@ -1517,13 +1517,19 @@ const TIP={
 };
 /* Zählen ohne Cookies und ohne persönliche Daten (GoatCounter).
    Eigenen Code eintragen, z. B. "mbond" für https://mbond.goatcounter.com – leer = es wird nichts gezählt. */
-const TRACK={goatcounter:""};
+const TRACK={goatcounter:"likedthatapp"};
 const counted={};
-function track(name,once){
+/* Eigene Besuche ausnehmen: Seite einmal mit #toggle-goatcounter am Ende der Adresse öffnen (wie bei GoatCounter üblich) */
+try{if(location.hash==="#toggle-goatcounter"){const on=localStorage.getItem("skipgc")==="t";localStorage.setItem("skipgc",on?"f":"t");alert&&0;history.replaceState(null,"",location.pathname)}}catch(e){}
+function track(name,once,view){
   if(PREVIEW)return;
+  try{if(localStorage.getItem("skipgc")==="t")return}catch(e){}
   if(!TRACK.goatcounter||(once&&counted[name]))return;counted[name]=1;
   try{
-    const u=`https://${TRACK.goatcounter}.goatcounter.com/count?p=${encodeURIComponent("/event/"+name)}&t=${encodeURIComponent(name)}&e=true&rnd=${Math.random().toString(36).slice(2)}`;
+    const scr=`${screen.width},${screen.height},${window.devicePixelRatio||1}`;
+    const u=view
+      ?`https://${TRACK.goatcounter}.goatcounter.com/count?p=${encodeURIComponent(location.pathname)}&t=mBond&r=${encodeURIComponent(document.referrer)}&s=${scr}&b=0&rnd=${Math.random().toString(36).slice(2)}`
+      :`https://${TRACK.goatcounter}.goatcounter.com/count?p=${encodeURIComponent("/event/"+name)}&t=${encodeURIComponent(name)}&e=true&s=${scr}&b=0&rnd=${Math.random().toString(36).slice(2)}`;
     if(navigator.sendBeacon)navigator.sendBeacon(u);else new Image().src=u;
   }catch(e){}
 }
@@ -2022,6 +2028,7 @@ function supportPreview(){
 }
 
 applyPlus();setGold();
+track("view",true,true);
 home();
 </script>
 <script>

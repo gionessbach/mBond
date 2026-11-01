@@ -448,6 +448,11 @@ textarea#fbText:focus{outline:none;border-color:var(--heart)}
 .spark circle{fill:var(--heart)}
 .spark .mid{stroke:var(--line);stroke-dasharray:4 4}
 .trend{text-align:center;font-weight:600;margin:4px 0}
+.chat-bar{display:flex;flex-direction:column;gap:10px}
+.chat-bar .big{min-height:56px;font-size:19px}
+.chat-wa{background:#25D366;color:#0b2b17}
+.chat-tg{background:#2AABEE;color:#06283a}
+.or-sep{text-align:center;font-size:13px;opacity:.7;margin:6px 0 -2px}
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{border-radius:16px;padding:8px 4px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:14px;line-height:1.1}
@@ -1577,8 +1582,8 @@ function setup(next){
 function pickPerson(i,chosen,next){
   const list=S.people.filter(p=>!chosen.some(c=>c.id===p.id));
   show(`
-  <div class="say"><h2>${i===0?L("Wer bist du?","Who are you?"):L("Und wer spielt mit?","And who's playing with you?")}</h2></div>
-  <p class="hint">${i===0?L("Du hältst das Handy zuerst.","You hold the phone first."):L("Die zweite Person bekommt das Handy später.","The second person gets the phone later.")}</p>
+  <div class="say"><h2>${i===0?L("Wer bist du?","Who are you?"):POST?L("An wen geht die Frage?","Who is the question for?"):L("Und wer spielt mit?","And who's playing with you?")}</h2></div>
+  <p class="hint">${POST?(i===0?L("Am besten mit Namen, damit klar ist, von wem die Frage kommt.","Best with your name, so they know who it's from."):L("Diese Person antwortet später auf ihrem eigenen Handy.","This person answers later on their own phone.")):i===0?L("Du hältst das Handy zuerst.","You hold the phone first."):L("Die zweite Person bekommt das Handy später.","The second person gets the phone later.")}</p>
   <div class="list">
     ${list.map(p=>`<button class="item pick" data-id="${p.id}"><span class="e">${p.av}</span><div class="t"><div class="n">${esc(p.name)}</div><div class="g">${stageOf(p.stage)[1]} ${stageName(p.stage)}</div></div></button>`).join("")}
     <button class="item pick" id="new"><span class="e plus-e">+</span><div class="t"><div class="n">${L("Neue Person","New person")}</div><div class="g">${L("Wird gespeichert, damit das Album wächst","Saved so the album can grow")}</div></div></button>
@@ -1718,7 +1723,7 @@ function finish(A,B,rel,next){
   CUR.end=CUR.g==="lernen"?{emoji:"spruch",meme:"meme",line:"idee"}[CUR.st]:ENDING[CUR.g];
   CUR.total=LENGTH[CUR.end][0];CUR.res=[];
   if(CUR.key){S.lastPair=[A.id,B.id];save()}
-  if(!M.nr&&(CUR.near==null||nearDue()))return nearRound(next);
+  if(!M.nr&&!NO_NEAR&&(CUR.near==null||nearDue()))return nearRound(next);
   next();
 }
 
@@ -1836,6 +1841,9 @@ function outcome(){
   const ans=CUR.P[R.ai], d=R.av-R.gv, ad=Math.abs(d);
   if(ad===0)return [L("Genau gleich!","Exactly the same!"),L("Ihr kennt euch richtig gut.","You really know each other."),ad];
   if(ad===1)return [L("Ganz nah beieinander!","So close!"),L("Fast dasselbe Gefühl.","Almost the same feeling."),ad];
+  if(CUR.recv){const gs=CUR.P[R.gi], gn=gs.anon?gs.nom:gs.name, gd=gs.anon?gs.dat:gs.name;
+    return [L("Oh, das ist neu!","Oh, that's new!"),d>0?L(`Das bedeutet dir noch mehr, als ${gn} gedacht hat. Erzähl ${gd} doch mal, warum!`,`It means even more to you than ${gn} thought. Tell them why!`)
+      :L(`Erzähl ${gd} doch mal, was sich für dich noch schöner anfühlen würde.`,`Tell ${gn} what would feel even better for you.`),ad]}
   if(d>0)return [L("Oh, das ist neu!","Oh, that's new!"),L(`Das bedeutet ${ans.dat} noch mehr, als gedacht. Erzählt euch mal, warum!`,`It means even more to ${ans.nom} than expected. Tell each other why!`),ad];
   return [L("Oh, das ist neu!","Oh, that's new!"),L(`Fragt mal nach: Was fühlt sich für ${ans.nom} noch schöner an?`,`Ask: What would feel even better for ${ans.nom}?`),ad];
 }
@@ -1846,11 +1854,11 @@ function record(){
   if(ans.id&&person(ans.id))S.album[ans.id]=store;
   const rk=CUR.key||"anon", rec=S.recent[rk]||(S.recent[rk]=[]);rec.push(R.g.id);while(rec.length>4)rec.shift();
   CUR.res=CUR.res||[];CUR.res.push({id:R.g.id,n:g.n,e:R.g.e||"",i:R.g.i||"",c:R.g.c||"s",gv:R.gv,av:R.av,ai:R.ai,custom:!!R.g.custom});
-  if(!M.nr)S.session={P:CUR.P.map(slim),rel:CUR.rel,n:CUR.n,total:CUR.total,res:CUR.res};
+  if(!M.nr&&!CUR.post)S.session={P:CUR.P.map(slim),rel:CUR.rel,n:CUR.n,total:CUR.total,res:CUR.res};
   S.rounds++;save();
   return before;
 }
-function reveal(onNext){
+function reveal(onNext,nextLabel){
   const g=loc(R.g);
   const ms=isTablet()?1.5:1;
   const row=v=>`<div class="mini">${[1,2,3,4,5].map(i=>`<span class="${i<=v?"on":""}">${heart(Math.round((16+i*3)*ms))}</span>`).join("")}</div>`;
@@ -1880,7 +1888,7 @@ function reveal(onNext){
       const showNudge=!onNext&&(S.rounds%2===0||!ownCount()&&S.rounds%3===1);
       const last=M.round?M.round.n>=M.round.total:CUR.n>=CUR.total;
       $("#act").innerHTML=`${showNudge?nudge(L("Fällt euch noch was ein?","Got another idea?"),L("Erstellt ein eigenes Bonding für die nächste Runde.","Create your own bonding for the next round.")):""}
-        <div class="row"><button class="big soft" id="alb" aria-label="Album" style="flex:0 0 76px">${BOOK}</button><button class="big primary" id="again">${ARROW}<span>${last?L("Zum Ergebnis","See result"):L("Nächste Runde","Next round")}</span></button></div>`;
+        <div class="row"><button class="big soft" id="alb" aria-label="Album" style="flex:0 0 76px">${BOOK}</button><button class="big primary" id="again">${ARROW}<span>${nextLabel||(last?L("Zum Ergebnis","See result"):L("Nächste Runde","Next round"))}</span></button></div>`;
       $("#again").onclick=onNext||start;
       $("#alb").onclick=()=>album(CUR.P[R.ai].id);
       wireNudge(start);
@@ -2399,8 +2407,8 @@ function twoStart(){
     if(!roomTried){show(`<div class="empty"><span class="e">📡</span><h2>${L("Verbinde …","Connecting …")}</h2></div>`);setTimeout(twoStart,800);return}
     show(`<div class="empty"><span class="e">📡</span><h2>${L("Hier nicht verfügbar","Not available here")}</h2>
       <p class="hint">${L("Für zwei Geräte braucht es eine Internetverbindung. Spielt so lange zusammen auf einem Gerät.","Two devices need an internet connection. Play together on one device for now.")}</p></div>
-      <div class="push"><button class="big primary" id="back">${ARROW}<span>${L("Auf einem Gerät spielen","Play on one device")}</span></button></div>`);
-    $("#back").onclick=()=>setup(start);return;
+      <div class="push"><button class="big primary" id="back">${ARROW}<span>${L("Auf einem Gerät spielen","Play on one device")}</span></button><button class="big soft" id="post">💌<span>${L("Frage per Chat schicken","Send a question by chat")}</span></button></div>`);
+    $("#back").onclick=()=>setup(start);$("#post").onclick=postStart;return;
   }
   show(`
   <div class="hero"><div class="duo"><div class="face">📱</div><div class="face">📱</div></div></div>
@@ -2411,9 +2419,12 @@ function twoStart(){
   <div class="push">
     <button class="big primary" id="mk">${PLUS}<span>${L("Code erstellen","Create code")}</span></button>
     <button class="big soft" id="in"><span>${L("Code eingeben","Enter code")}</span></button>
+    <div class="or-sep">${L("oder zeitversetzt","or not at the same time")}</div>
+    <button class="big soft" id="post">💌<span>${L("Frage per Chat schicken","Send a question by chat")}</span></button>
   </div>`);
-  $("#mk").onclick=()=>pickPerson(0,[],twoWho);
+  $("#mk").onclick=()=>{NO_NEAR=true;pickPerson(0,[],twoWho)};
   $("#in").onclick=twoEnter;
+  $("#post").onclick=postStart;
 }
 function twoWho(){
   show(`
@@ -2441,7 +2452,9 @@ function waiting(){
   <div class="say"><h2>${M.host?L("Euer Code","Your code"):L("Verbinde …","Connecting …")}</h2></div>
   <div class="code big-code">${M.code.split("").map(c=>`<span>${c}</span>`).join("")}</div>
   <p class="hint">${M.host?L("Auf dem zweiten Gerät „Zwei Geräte“ öffnen und diesen Code eingeben.","On the second device, open “Two devices” and enter this code."):L("Warte auf das andere Gerät …","Waiting for the other device …")}</p>
-  <div class="empty" style="flex:0"><div class="mini pulse">${heart(26,"on")}${heart(32,"on")}${heart(26,"on")}</div></div>`);
+  <div class="empty" style="flex:0"><div class="mini pulse">${heart(26,"on")}${heart(32,"on")}${heart(26,"on")}</div></div>
+  ${inviteBox()}`);
+  wireInvite();
 }
 function connFail(msg){
   show(`<div class="empty"><span class="e">📡</span><h2>${L("Keine Verbindung","No connection")}</h2><p class="hint">${msg}</p></div>
@@ -2822,7 +2835,10 @@ function privacyPage(){
   parts.push(sec(de?`${n}. Vorlesen und Teilen`:`${n}. Reading aloud and sharing`,
       P(de?"Das Vorlesen nutzt die Sprachausgabe deines Geräts. Ein Ergebnisbild teilst du selbst über eine App deiner Wahl, mBond überträgt dabei nichts an mich."
           :"Reading aloud uses your device's speech output. You share a result image yourself via an app of your choice; mBond sends nothing to me.")));
-  parts.push(sec(de?`${n+1}. Deine Rechte`:`${n+1}. Your rights`,
+  parts.push(sec(de?`${n+1}. Chat-Links (WhatsApp, Telegram)`:`${n+1}. Chat links (WhatsApp, Telegram)`,
+      P(de?"Einladungen, Bonding-Posts und Ergebnisse verschickst du selbst über einen Chat-Dienst deiner Wahl. Der Link enthält nur, was für die Frage nötig ist: Vornamen oder Gesichter, Lebensphase, Beziehungsart, die Frage und die verschleierte Schätzung. Er wird nicht auf einem Server gespeichert, mBond überträgt dabei nichts an mich. Für das Versenden gelten die Datenschutzbestimmungen des jeweiligen Dienstes. Öffnest du mBond in Telegram, lädt die Seite zusätzlich ein Skript von Telegram (telegram.org), damit die Anzeige in Telegram funktioniert. Telegram übergibt dabei Angaben zu deinem Telegram-Konto an die Seite; mBond nutzt und speichert diese nicht."
+          :"You send invitations, bonding posts and results yourself via a chat service of your choice. The link only contains what the question needs: first names or faces, life stage, relationship type, the question and the obscured guess. It is not stored on a server and mBond sends nothing to me. The sending service's privacy terms apply. If you open mBond in Telegram, the page also loads a script from Telegram (telegram.org) so it displays correctly there. Telegram passes details of your Telegram account to the page; mBond neither uses nor stores them.")));
+  parts.push(sec(de?`${n+2}. Deine Rechte`:`${n+2}. Your rights`,
       P(de?"Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO). Schreib mir dazu einfach eine E-Mail. Außerdem kannst du dich bei einer Datenschutz-Aufsichtsbehörde beschweren, zum Beispiel bei der Landesbeauftragten für Datenschutz und Informationsfreiheit Nordrhein-Westfalen."
           :"You have the right of access, rectification, erasure, restriction, data portability and objection (Art. 15–21 GDPR). Just send me an email. You can also lodge a complaint with a data protection authority, for example the State Commissioner for Data Protection and Freedom of Information of North Rhine-Westphalia.")));
   show(`
@@ -2834,10 +2850,222 @@ function privacyPage(){
   $("#gcToggle").onclick=()=>{try{localStorage.setItem("skipgc",skip?"f":"t")}catch(e){}privacyPage()};
 }
 
+
+/* =========================================================
+   Chat-Dienste: WhatsApp & Telegram
+   1. Einladung für „Zwei Geräte“ als Link (#j=CODE) – öffnet direkt das Spiel
+   2. Bonding-Post: eine Frage zeitversetzt per Link verschicken (#p=…)
+      Alles steckt im Link, kein Server, kein Konto. Die Schätzung ist darin verschleiert.
+   3. Telegram: als Mini-App nutzbar (Start-Parameter j_… / p_…), eigene Links über TG_APP
+   ========================================================= */
+const LIVE_URL=/github\.io$/.test(location.hostname)?location.origin+location.pathname:"https://gionessbach.github.io/mBond/";
+const TG_APP=""; // z. B. "https://t.me/mbond_app_bot/play" – sobald der Telegram-Bot angelegt ist
+let NO_NEAR=false, POST=false;
+const _home2=home; home=function(){NO_NEAR=false;POST=false;_home2()};
+
+/* Telegram erkennen (Mini-App), Skript nur dann nachladen */
+const TG_PARAMS=(()=>{try{return new URLSearchParams(location.hash.slice(1)+"&"+location.search.slice(1))}catch(e){return new URLSearchParams()}})();
+const IN_TG=TG_PARAMS.has("tgWebAppData")||TG_PARAMS.has("tgWebAppVersion");
+let tg=null;
+if(IN_TG){
+  const sc=document.createElement("script");sc.src="https://telegram.org/js/telegram-web-app.js";
+  sc.onload=()=>{try{tg=window.Telegram&&window.Telegram.WebApp;tg.ready();tg.expand()}catch(e){}};
+  document.head.appendChild(sc);
+}
+function openExt(url){
+  try{
+    if(tg&&/^https:\/\/t\.me\//.test(url))return tg.openTelegramLink(url);
+    if(tg)return tg.openLink(url);
+  }catch(e){}
+  const w=window.open(url,"_blank","noopener");if(!w)location.href=url;
+}
+
+/* Link-Inhalt: JSON → leicht verschleiert → base64url */
+const PK="mBond💛";
+function packData(o){
+  const b=new TextEncoder().encode(JSON.stringify(o)), k=new TextEncoder().encode(PK);
+  const x=b.map((v,i)=>v^k[i%k.length]);
+  let s="";x.forEach(v=>s+=String.fromCharCode(v));
+  return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function unpackData(str){
+  try{
+    const s=atob(str.replace(/-/g,"+").replace(/_/g,"/")), k=new TextEncoder().encode(PK);
+    const b=Uint8Array.from(s,(c,i)=>c.charCodeAt(0)^k[i%k.length]);
+    return JSON.parse(new TextDecoder().decode(b));
+  }catch(e){return null}
+}
+/* Links bauen: für Telegram (falls Mini-App eingerichtet) als startapp, sonst normaler Web-Link */
+const webLink=(kind,val)=>LIVE_URL+"#"+kind+"="+val;
+const tgLink=(kind,val)=>TG_APP?TG_APP+"?startapp="+kind+"_"+val:webLink(kind,val);
+
+/* Teilen-Leiste: WhatsApp, Telegram, Teilen-Menü, Link kopieren */
+function chatBar(text,kind,val){
+  return `<div class="chat-bar">
+    <button class="big chat-wa" data-ch="wa">💬<span>WhatsApp</span></button>
+    <button class="big chat-tg" data-ch="tg">✈️<span>Telegram</span></button>
+    <div class="row">${navigator.share?`<button class="big soft" data-ch="share">${SHARE}<span>${L("Teilen","Share")}</span></button>`:""}<button class="big soft" data-ch="copy"><span>${L("Link kopieren","Copy link")}</span></button></div>
+  </div>`;
+}
+function wireChat(text,kind,val,onSent){
+  const w=webLink(kind,val), t=tgLink(kind,val);
+  stage.querySelectorAll("[data-ch]").forEach(b=>b.onclick=async()=>{
+    const ch=b.dataset.ch;track("chat-"+kind+"-"+ch);
+    if(ch==="wa")openExt("https://wa.me/?text="+encodeURIComponent(text+"\n"+w));
+    else if(ch==="tg")openExt("https://t.me/share/url?url="+encodeURIComponent(t)+"&text="+encodeURIComponent(text));
+    else if(ch==="share"){try{await navigator.share({title:"mBond",text,url:w})}catch(e){if(e&&e.name==="AbortError")return}}
+    else return copyText(w,b);
+    if(onSent)onSent();
+  });
+}
+
+/* ---------- 1. Einladung für zwei Geräte ---------- */
+function inviteBox(){
+  if(!M.host||transport()?.kind!=="direct")return "";
+  return `<p class="hint">${L("Oder schickt den Link, dann geht's ohne Code:","Or send the link and skip the code:")}</p>${chatBar()}`;
+}
+function wireInvite(){
+  if(!M.host||transport()?.kind!=="direct")return;
+  const me=CUR.P[M.role], name=me.anon?"":me.name+": ";
+  wireChat(L(`${name}Spielst du mit mir mBond? 💛 Einfach auf den Link tippen, dann geht's los (Code ${M.code}).`,`${name}Play mBond with me? 💛 Just tap the link to start (code ${M.code}).`),"j",M.code);
+}
+
+/* ---------- 2. Bonding-Post ---------- */
+function postStart(){
+  NO_NEAR=true;POST=true;track("post-start");
+  pickPerson(0,[],postCompose);
+}
+const postName=p=>p.anon?"":p.name;
+function postCompose(){
+  CUR.post=true;
+  const ai=1;
+  R={ai,gi:0,g:drawGesture(ai)};
+  const pill=`<div class="link-pill">💌 Bonding-Post</div>`;
+  const run=async()=>{
+    const pr=askScreen("guess",CUR.P[0],R.g,ai,true,pill);
+    $("#other").onclick=()=>{R.g=drawGesture(ai,R.g.id);run()};
+    R.gv=await pr;postSend();
+  };
+  run();
+}
+function postPayload(){
+  const g=R.g, P=CUR.P;
+  const roles=CUR.asym?"o#"+CUR.older:"eq";
+  const o={v:1,P:P.map(p=>[p.anon?"":p.name,p.av,p.stage]),r:CUR.base+"|"+roles+"|"+CUR.frame,x:R.gv};
+  if(g.custom||/:plus_/.test(g.id))o.c={id:g.id,e:g.e,n:g.n,p:g.p,i:g.i,mt:g.mt,mb:g.mb,cu:!!g.custom,c:g.c};else o.g=g.id;
+  return packData(o);
+}
+function postSend(){
+  const val=postPayload(), g=loc(R.g), me=CUR.P[0], to=CUR.P[1];
+  const who=postName(me)||L("Jemand","Someone");
+  const q=stripGuess(Q("answer",1,g.p));
+  const text=L(`💌 ${who} hat dir eine Frage bei mBond geschickt: ${q} ${who} hat schon heimlich geschätzt. Antworte hier:`,`💌 ${who} sent you a question on mBond: ${q} ${who} has already guessed in secret. Answer here:`);
+  track("post-ready");
+  show(`
+  <div class="duo">${art(g,"sm")}</div>
+  <div class="say"><h2>${L("Deine Frage ist bereit!","Your question is ready!")}</h2></div>
+  <p class="hint">${L(`Schick sie an ${esc(to.anon?to.nom:to.name)}. Deine Schätzung ist im Link versteckt und wird erst nach der Antwort aufgedeckt.`,`Send it to ${esc(to.anon?to.nom:to.name)}. Your guess is hidden in the link and only revealed after they answer.`)}</p>
+  ${chatBar()}
+  <div class="push"><button class="big primary" id="done">${CHECK}<span>${L("Fertig","Done")}</span></button></div>`);
+  wireChat(text,"p",val);
+  $("#done").onclick=home;
+}
+function gestureById(id){
+  const parts=id.split(":"), set=parts[0];
+  if(parts.length===3){const src=(parts[1]==="y"?SETS:SWAP)[set];const a=src&&src.find(x=>x[0]===parts[2]);return a?toObj(set+":"+parts[1],a):null}
+  const a=SYM[set]&&SYM[set].find(x=>x[0]===parts[1]);return a?toObj(set,a):null;
+}
+function postOpen(val){
+  const d=unpackData(val);
+  if(!d||d.v!==1||!d.P){toast(L("Dieser Link ist leider unvollständig.","Sorry, this link is incomplete."));return home()}
+  track("post-open");
+  NO_NEAR=true;POST=true;
+  const mk=([name,av,stage])=>({id:null,anon:!name,name:name||"",av,stage});
+  CUR=makeCtx(mk(d.P[0]),mk(d.P[1]),d.r);CUR.post=true;CUR.recv=true;CUR.n=1;CUR.total=1;
+  let g=d.g?gestureById(d.g):null;
+  if(!g&&d.c)g={...d.c,custom:d.c.cu};
+  if(!g){toast(L("Diese Frage kennt deine mBond-Version noch nicht.","Your mBond version doesn't know this question yet."));return home()}
+  R={ai:1,gi:0,g,gv:d.x};
+  const from=CUR.P[0], who=postName(from)||L("Jemand","Someone");
+  show(`
+  <div class="hero"><div class="duo"><span class="face">${from.av}</span><span class="face">💌</span></div></div>
+  <div class="say"><h2>${L(`${esc(who)} hat dir eine Frage geschickt`,`${esc(who)} sent you a question`)}</h2></div>
+  <p class="hint">${L(`Antworte ganz ehrlich. Danach siehst du, wie ${esc(who)} dich eingeschätzt hat.`,`Answer honestly. Then you'll see how ${esc(who)} guessed.`)}</p>
+  <div class="push"><button class="big primary" id="go">${heart(28,"on")}<span>${L("Antworten","Answer")}</span></button></div>`,false,true);
+  $("#go").onclick=async()=>{
+    R.av=await askScreen("answer",CUR.P[1],R.g,1,false,`<div class="link-pill">💌 Bonding-Post</div>`);
+    track("post-answered");
+    reveal(postAfter,L("Weiter","Continue"));
+  };
+}
+function postAfter(){
+  const g=loc(R.g), from=CUR.P[0], who=postName(from)||L("Jemand","Someone");
+  const [h]=outcome(), hearts=n=>"❤️".repeat(n)+"🤍".repeat(5-n);
+  const text=L(`💌 mBond: „${g.n}“\nIch: ${hearts(R.av)}\nDu hast geschätzt: ${hearts(R.gv)}\n${h}`,`💌 mBond: “${g.n}”\nMe: ${hearts(R.av)}\nYour guess: ${hearts(R.gv)}\n${h}`);
+  show(`
+  <div class="say"><h2>${L("Und jetzt?","What now?")}</h2></div>
+  <p class="hint">${L(`Schick ${esc(who)} dein Ergebnis oder stell selbst eine Frage zurück.`,`Send ${esc(who)} your result or ask a question back.`)}</p>
+  <div class="push">
+    <button class="big primary" id="back">💌<span>${L("Frage zurückschicken","Ask a question back")}</span></button>
+    <button class="big soft" id="res">${SHARE}<span>${L("Ergebnis schicken","Send result")}</span></button>
+    <button class="big soft" id="hm"><span>${L("mBond entdecken","Discover mBond")}</span></button>
+  </div>`);
+  $("#back").onclick=()=>{
+    const P=CUR.P, roles=CUR.asym?"o#"+(1-CUR.older):"eq";
+    CUR=makeCtx({...P[1]},{...P[0]},CUR.base+"|"+roles+"|"+CUR.frame);
+    if(CUR.P[0].anon&&!CUR.P[0].name)return askOwnName(postCompose);
+    postCompose();
+  };
+  $("#res").onclick=()=>{
+    show(`
+    <div class="say"><h2>${L("Ergebnis schicken","Send result")}</h2></div>
+    <div class="quote" style="white-space:pre-line">${esc(text)}</div>
+    ${chatBar()}
+    <div class="push"><button class="big primary" id="done">${CHECK}<span>${L("Fertig","Done")}</span></button></div>`);
+    wireChat(text,"","");
+    // Ergebnis-Link führt einfach zur App
+    stage.querySelectorAll("[data-ch]").forEach(b=>{const o=b.onclick;b.onclick=async()=>{
+      const ch=b.dataset.ch;track("post-result-"+ch);
+      if(ch==="wa")return openExt("https://wa.me/?text="+encodeURIComponent(text+"\n"+LIVE_URL));
+      if(ch==="tg")return openExt("https://t.me/share/url?url="+encodeURIComponent(TG_APP||LIVE_URL)+"&text="+encodeURIComponent(text));
+      if(ch==="share"){try{await navigator.share({title:"mBond",text,url:LIVE_URL})}catch(e){}return}
+      return copyText(text+"\n"+LIVE_URL,b);
+    }});
+    $("#done").onclick=postAfter;
+  };
+  $("#hm").onclick=home;
+}
+/* Wer zurückfragt, sollte einen Namen haben, damit das Gegenüber weiß, von wem die Frage kommt */
+function askOwnName(next){
+  show(`
+  <div class="say"><h2>${L("Wie heißt du?","What's your name?")}</h2></div>
+  <p class="hint">${L("Damit dein Gegenüber weiß, von wem die Frage kommt.","So the other person knows who the question is from.")}</p>
+  <div class="form"><div class="field"><input id="pn" maxlength="18" placeholder="${L("z. B. Mama, Lena, Opa Karl","e.g. Mum, Lena, Grandpa Joe")}" autocomplete="off"></div></div>
+  <div class="push"><button class="big primary" id="ok">${ARROW}<span>${L("Weiter","Continue")}</span></button></div>`);
+  $("#ok").onclick=()=>{const v=$("#pn").value.trim();if(v){CUR.P[0].name=v;CUR.P[0].anon=false;CUR.P[0].nom=CUR.P[0].dat=v}next()};
+}
+
+/* ---------- Links beim Öffnen auswerten ---------- */
+function deepLink(){
+  let kind=null,val=null;
+  const h=location.hash.match(/^#(j|p)=([A-Za-z0-9_-]+)/);
+  if(h){kind=h[1];val=h[2]}
+  const sp=TG_PARAMS.get("tgWebAppStartParam");
+  if(!kind&&sp){const m=sp.match(/^(j|p)_([A-Za-z0-9_-]+)$/);if(m){kind=m[1];val=m[2]}}
+  if(!kind)return false;
+  try{if(h)history.replaceState(null,"",location.pathname+location.search)}catch(e){}
+  if(kind==="p"){postOpen(val);return true}
+  if(kind==="j"&&/^\d{4}$/.test(val)){
+    const go=()=>{const tr=transport();if(!tr){if(!roomTried)return setTimeout(go,500);return twoStart()}connect(val,false,null,0)};
+    track("invite-open");go();return true;
+  }
+  return false;
+}
+
 applyPlus();setGold();
 checkKI();
 track("view",true,true);
-home();
+if(!deepLink())home();
 </script>
 <script>
 // Offline: App beim ersten Start auf dem Gerät speichern

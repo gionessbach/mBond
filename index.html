@@ -212,7 +212,7 @@ button.who-box .face{width:84px;height:84px;font-size:50px}
 .dots{display:flex;justify-content:center;gap:8px}
 .dots span{width:8px;height:8px;border-radius:50%;background:var(--heart-empty)}
 .dots span.on{background:var(--heart);width:22px;border-radius:99px}
-.demo-stage{min-height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.demo-stage{min-height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
 .demo-scale span{display:inline-grid}
 .demo-scale span.pop{animation:pop .45s ease both}
 @keyframes pop{0%{transform:scale(.4);opacity:.3}70%{transform:scale(1.15)}100%{transform:none;opacity:1}}
@@ -229,6 +229,12 @@ button.who-box .face{width:84px;height:84px;font-size:50px}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;max-width:min(92vw,440px);
   background:var(--fg);color:var(--bg);border-radius:16px;padding:12px 16px;font-size:15px;line-height:1.4;box-shadow:0 8px 24px rgba(0,0,0,.25);transition:opacity .5s}
 .toast.out{opacity:0}
+
+/* Start & Beispielrunde: Inhalt und Knöpfe als ruhiger Block, kein großes Loch */
+.screen.compact{justify-content:center}
+.screen.compact .push{margin-top:clamp(16px,4vh,40px)}
+.big span{white-space:nowrap}
+@media (max-width:380px){.row .big{font-size:18px;padding-inline:14px}}
 
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
@@ -810,6 +816,7 @@ const CHECK=ic('<path d="M5 12.5l4.5 4.5L19 7.5"/>');
 const DICE=ic('<rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="15" r="1.2" fill="currentColor"/><circle cx="15" cy="9" r="1.2" fill="currentColor"/><circle cx="9" cy="15" r="1.2" fill="currentColor"/>');
 const BOOK=ic('<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5zM4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/>');
 const PLUS=ic('<path d="M12 5v14M5 12h14"/>');
+const PHONES=ic('<rect x="2.5" y="5" width="8" height="14" rx="2"/><rect x="13.5" y="5" width="8" height="14" rx="2"/><path d="M5.5 16h2M16.5 16h2"/>');
 const SHARE=ic('<path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>');
 
 /* ---------- Sprache & Vorlesen ---------- */
@@ -882,7 +889,7 @@ $("#homeBtn").onclick=()=>home();
 $("#langBtn").onclick=()=>{S.lang=EN_ON()?"de":"en";save();pickVoice();setHeader();if(CUR){labels(CUR.P,CUR.rel,CUR.younger)}home()};
 setHeader();
 
-function show(html,isHome){stage.classList.remove("screen");void stage.offsetWidth;stage.classList.add("screen");stage.innerHTML=html;$("#homeBtn").hidden=!!isHome;window.scrollTo(0,0)}
+function show(html,isHome,compact){stage.classList.remove("screen");void stage.offsetWidth;stage.classList.add("screen");stage.classList.toggle("compact",!!compact);stage.innerHTML=html;$("#homeBtn").hidden=!!isHome;window.scrollTo(0,0)}
 const enable=el=>{el.disabled=false;el.style.opacity=1};
 const nudge=(title,sub)=>`<button class="nudge" data-create><span class="plus">+</span><div><b>${title}</b><span>${sub}</span></div></button>`;
 function wireNudge(after){stage.querySelectorAll("[data-create]").forEach(b=>b.onclick=()=>create(after))}
@@ -901,8 +908,8 @@ function home(){
   <div class="push">
     ${nudge(own?L(`${own} eigene${own>1?"":"s"} Bonding${own>1?"s":""} · noch eins?`,`${own} own bonding${own>1?"s":""} · add another?`):L("Eigenes Bonding erstellen","Create your own bonding"),L("Eure Rituale bringen die größten Aha-Momente.","Your own rituals bring the biggest aha moments."))}
     <button class="big primary" id="play">${ARROW}<span>${L("Los geht's","Let's play")}</span></button>
-    <div class="row"><button class="big soft" id="album">${BOOK}<span>${L("Album","Album")}</span></button><button class="big soft" id="two"><span>📱📱</span><span>${L("Zwei Geräte","Two devices")}</span></button></div>
-  </div>`,true);
+    <div class="row"><button class="big soft" id="album">${BOOK}<span>${L("Album","Album")}</span></button><button class="big soft" id="two">${PHONES}<span>${L("Zwei Geräte","Two devices")}</span></button></div>
+  </div>`,true,true);
   wireNudge(home);
   const go=()=>setup(()=>S.introSeen?start():intro());
   $("#play").onclick=()=>S.demoSeen?go():demo(go);
@@ -947,7 +954,7 @@ function demo(after){
     <div class="push">
       <button class="big primary" id="nx">${last?CHECK:ARROW}<span>${last?L("Selbst ausprobieren","Try it yourself"):L("Weiter","Next")}</span></button>
       ${last?"":`<button class="tiny" id="sk">${L("Überspringen","Skip")}</button>`}
-    </div>`);
+    </div>`,false,true);
     $("#nx").onclick=()=>{if(last)after();else{i++;draw()}};
     const sk=$("#sk");if(sk)sk.onclick=after;
   };

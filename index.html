@@ -289,6 +289,8 @@ button.who-box .face{width:84px;height:84px;font-size:50px}
 .perks{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-family:var(--display);font-size:16px}
 .pop-box .tip{border:0;padding:0;background:none}
 .support-link{align-self:center;text-align:center}
+#tipSlot{display:flex;flex-direction:column;align-items:center;gap:4px}
+#tipSlot .support-btn,#tipSlot .tip{align-self:stretch}
 .thanks-line{margin:0;text-align:center;font-family:var(--display);font-size:15px;color:var(--muted)}
 .unlock{display:flex;flex-direction:column;gap:6px;align-items:stretch}
 .unlock>span{font-size:12px;color:var(--muted);text-align:center;line-height:1.35}
@@ -1354,8 +1356,9 @@ function album(pid){
   ${nudge(L("Eigenes Bonding erstellen","Create your own bonding"),ownCount()?L(`${ownCount()} eigene schon dabei. Was fehlt noch?`,`${ownCount()} of your own so far. What's missing?`):L("Was macht nur ihr zwei miteinander?","What do only you two do together?"))}
   ${ownCount()?`<button class="tiny" id="mg">${L("Eigene Bondings verwalten","Manage your bondings")}</button>`:""}
   ${S.supporter?`<div class="supporter"><span>💛 ${L("Unterstützer · Dankeschön-Paket aktiv","Supporter · thank-you pack active")}</span>
-      <button class="chip" id="goldBtn" aria-pressed="${!!S.gold}">${L("Goldene Herzen","Golden hearts")}</button></div>`
-    :S.rounds>=5?`<div id="gateSlot"><button class="tiny" id="forParents">${L("Für Eltern: mBond unterstützen","For parents: support mBond")}</button></div>`:""}
+      <button class="chip" id="goldBtn" aria-pressed="${!!S.gold}">${L("Goldene Herzen","Golden hearts")}</button></div>
+    <div id="gateSlot"><button class="support-btn" id="forParents"><span class="sb-ic" aria-hidden="true">☕</span><span class="sb-t"><b>${L("Für Eltern: nochmal unterstützen","For parents: support again")}</b><span>${L("Hilft bei neuen Fragen und Illustrationen","Helps with new questions and illustrations")}</span></span><span class="sb-go" aria-hidden="true">›</span></button></div>`
+    :S.rounds>=5?`<div id="gateSlot"><button class="support-btn" id="forParents"><span class="sb-ic" aria-hidden="true">☕</span><span class="sb-t"><b>${L("Für Eltern: mBond unterstützen","For parents: support mBond")}</b><span>${L(`Dankeschön: ${PLUS_COUNT} neue Fragen und goldene Herzen`,`Thank-you: ${PLUS_COUNT} new questions and golden hearts`)}</span></span><span class="sb-go" aria-hidden="true">›</span></button></div>`:""}
   <div class="push"><button class="big primary" id="play">${ARROW}<span>${L("Spielen","Play")}</span></button></div>`);
   wireTip();
   stage.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>album(b.dataset.p));
@@ -1465,7 +1468,7 @@ function endGame(){
   <p class="hint">${L(`${close} von ${res.length} Fragen fast gleich eingeschätzt`,`${close} of ${res.length} questions guessed almost the same`)}${surprise&&Math.abs(surprise.av-surprise.gv)>=2?L(` · größte Überraschung: ${esc(nm(surprise))}`,` · biggest surprise: ${esc(nm(surprise))}`):""}</p>
   ${body}
   ${allowed?`<div id="tipSlot">${S.supporter
-    ?`<p class="thanks-line">💛 ${L("Danke, dass ihr mBond unterstützt!","Thank you for supporting mBond!")}</p>`
+    ?`<p class="thanks-line">💛 ${L("Danke, dass ihr mBond unterstützt!","Thank you for supporting mBond!")}</p><button class="tiny" id="supportLink">☕ ${hasMinor()?L("Für Eltern: nochmal unterstützen","For parents: support again"):L("Nochmal unterstützen","Support again")}</button>`
     :`<button class="support-btn" id="supportLink"><span class="sb-ic" aria-hidden="true">☕</span><span class="sb-t"><b>${hasMinor()?L("Für Eltern: mBond unterstützen","For parents: support mBond"):L("mBond unterstützen","Support mBond")}</b><span>${L(`Dankeschön: ${PLUS_COUNT} neue Fragen und goldene Herzen`,`Thank-you: ${PLUS_COUNT} new questions and golden hearts`)}</span></span><span class="sb-go" aria-hidden="true">›</span></button>`}</div>`:""}
   <div class="push">
     <button class="big soft" id="share">${SHARE}<span>${L("Ergebnis teilen","Share result")}</span></button>
@@ -1557,10 +1560,10 @@ function tipCard(where){
       <button class="via" role="tab" data-via="paypal" aria-selected="${method==="paypal"}"><b>PayPal</b><span>${L("schnell, mit Gebühr","quick, with a fee")}</span></button>
     </div>`:""}
     <div id="tipBody"></div>
-    ${S.supporter?"":`<div class="unlock" id="unlockRow" hidden>
+    <div class="unlock" id="unlockRow" hidden>
       <button class="big soft" id="unlockBtn">💛<span>${L("Ich habe unterstützt","I've given a tip")}</span></button>
-      <span>${L("Damit schaltet ihr das Dankeschön frei. Wir können nicht prüfen, ob gezahlt wurde, wir vertrauen euch.","This unlocks your thank-you. We can't check whether you paid, we trust you.")}</span>
-    </div>`}
+      ${S.supporter?"":`<span>${L("Damit schaltet ihr das Dankeschön frei. Wir können nicht prüfen, ob gezahlt wurde, wir vertrauen euch.","This unlocks your thank-you. We can't check whether you paid, we trust you.")}</span>`}
+    </div>
     <p class="tip-note">${L("Freiwillig. In mBond bleibt alles kostenlos.","Voluntary. Everything in mBond stays free.")}</p>
   </div>`;
 }
@@ -1937,15 +1940,25 @@ function tipPopup(n){
   ov.innerHTML=`<div class="share-box pop-box">
     <svg viewBox="0 0 240 120" aria-hidden="true" class="pop-hearts"><path d="${HEART}" transform="translate(40 4) scale(4.6)" fill="var(--accent)"/><path d="${HEART}" transform="translate(100 12) scale(4.6)" fill="var(--heart)" opacity=".92"/></svg>
     <span class="h2like" style="text-align:center">${L(`Schon ${n} Spiele zusammen!`,`${n} games together already!`)}</span>
-    <p class="hint" style="margin:0">${L("mBond ist kostenlos und ohne Werbung. Wenn es euch gefällt, freuen wir uns über ein kleines Trinkgeld. Als Dankeschön bekommt ihr:","mBond is free and ad-free. If you enjoy it, a small tip means a lot. As a thank-you you get:")}</p>
+    <p class="hint" style="margin:0">${L("mBond ist kostenlos und ohne Werbung. Ihr wollt uns unterstützen und dabei neue Fragen freischalten? Als Dankeschön gibt es:","mBond is free and ad-free. Want to support us and unlock new questions? As a thank-you you get:")}</p>
     <ul class="perks"><li>✨ ${L(`${PLUS_COUNT} neue Fragen für alle Themenwelten`,`${PLUS_COUNT} new questions for every theme`)}</li><li>💛 ${L("Goldene Herzen","Golden hearts")}</li></ul>
-    ${tipCard("popup")}
+    <div id="popStep">
+      <button class="big primary" id="wantSupport">💛<span>${L("Unterstützen und freischalten","Support and unlock")}</span></button>
+    </div>
     <button class="big soft" id="later"><span>${L("Vielleicht später","Maybe later")}</span></button>
   </div>`;
-  document.body.appendChild(ov);wireTip();
+  document.body.appendChild(ov);
+  $("#wantSupport").onclick=()=>{track("tip-popup-yes");$("#popStep").innerHTML=tipCard("popup");wireTip();$("#later").querySelector("span").textContent=L("Doch nicht","Not now")};
   $("#later").onclick=()=>ov.remove();
 }
 function unlockPlus(){
+  S.tips=(S.tips||0)+1;
+  if(S.supporter){
+    track("tip-again");save();burst(24);
+    document.querySelectorAll(".tip-pop").forEach(x=>x.remove());
+    const box=$("#tip");if(box)box.outerHTML=`<p class="thanks-line">💛 ${L("Vielen Dank, dass ihr mBond nochmal unterstützt!","Thank you so much for supporting mBond again!")}</p>`;
+    return;
+  }
   S.supporter=true;S.gold=true;save();applyPlus();setGold();track("tip-unlock");
   document.querySelectorAll(".tip-pop").forEach(x=>x.remove());
   const slot=$("#tipSlot")||$("#gateSlot");

@@ -394,6 +394,15 @@ button.who-box .face{width:84px;height:84px;font-size:50px}
   .rev-right .push{max-width:none}
 }
 
+.foot-row{display:flex;justify-content:center;gap:18px;flex-wrap:wrap}
+.fb-list{grid-template-columns:1fr!important}
+.fb-btn{border-color:var(--line)}
+.fb-btn .sb-ic{background:var(--heart-soft)}
+textarea#fbText{font:inherit;font-size:17px;color:var(--fg);background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:14px;width:100%;resize:vertical;user-select:text;-webkit-user-select:text}
+textarea#fbText:focus{outline:none;border-color:var(--heart)}
+.fb-sum{margin:0;white-space:pre-wrap;font-family:var(--body);font-size:14px;line-height:1.5;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;user-select:text;-webkit-user-select:text;max-height:40vh;overflow:auto}
+@media (min-width:700px) and (min-height:600px){.fb-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{border-radius:16px;padding:8px 4px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:14px;line-height:1.1}
@@ -1210,7 +1219,7 @@ function home(){
     ${nudge(own?L(`${own} eigene${own>1?"":"s"} Bonding${own>1?"s":""} · noch eins?`,`${own} own bonding${own>1?"s":""} · add another?`):L("Eigenes Bonding erstellen","Create your own bonding"),L("Eure Rituale bringen die größten Aha-Momente.","Your own rituals bring the biggest aha moments."))}
     <button class="big primary" id="play">${ARROW}<span>${L("Los geht's","Let's play")}</span></button>
     <div class="row"><button class="big soft" id="album">${BOOK}<span>${L("Album","Album")}</span></button><button class="big soft" id="two">${PHONES}<span>${L("Zwei Geräte","Two devices")}</span></button></div>
-    <button class="tiny foot-link" id="privacy">${L("Datenschutz","Privacy")}</button>
+    <div class="foot-row"><button class="tiny foot-link" id="fbLink">💬 ${L("Feedback geben","Give feedback")}</button><button class="tiny foot-link" id="privacy">${L("Datenschutz","Privacy")}</button></div>
   </div>`,true,true);
   wireNudge(home);
   const go=()=>setup(()=>S.introSeen?start():intro());
@@ -1220,6 +1229,7 @@ function home(){
   $("#album").onclick=()=>album();
   $("#two").onclick=twoStart;
   $("#privacy").onclick=privacyPage;
+  $("#fbLink").onclick=()=>feedback(home);
 }
 
 /* ---------- Beispielrunde ---------- */
@@ -1701,6 +1711,7 @@ function endGame(){
   ${allowed?`<div id="tipSlot">${S.supporter
     ?`<p class="thanks-line">💛 ${L("Danke, dass ihr mBond unterstützt!","Thank you for supporting mBond!")}</p><button class="tiny" id="supportLink">☕ ${hasMinor()?L("Für Eltern: nochmal unterstützen","For parents: support again"):L("Nochmal unterstützen","Support again")}</button>`
     :`<button class="support-btn" id="supportLink"><span class="sb-ic" aria-hidden="true">☕</span><span class="sb-t"><b>${hasMinor()?L("Für Eltern: mBond unterstützen","For parents: support mBond"):L("mBond unterstützen","Support mBond")}</b><span>${L(`Dankeschön: ${PLUS_COUNT} neue Fragen und goldene Herzen`,`Thank-you: ${PLUS_COUNT} new questions and golden hearts`)}</span></span><span class="sb-go" aria-hidden="true">›</span></button>`}</div>`:""}
+  ${FEEDBACK_ON&&!S.fbDone&&!S.fbLater?`<button class="support-btn fb-btn" id="fbEnd"><span class="sb-ic" aria-hidden="true">💬</span><span class="sb-t"><b>${L("Kurzes Feedback für die Testphase?","Quick feedback for the test phase?")}</b><span>${L("Für Erwachsene · 8 kurze Fragen · etwa 1 Minute","For adults · 8 short questions · about 1 minute")}</span></span><span class="sb-go" aria-hidden="true">›</span></button>`:""}
   <div class="push">
     <button class="big soft" id="share">${SHARE}<span>${L("Ergebnis teilen","Share result")}</span></button>
     ${!M.nr||M.host?`<button class="big soft" id="more">${PLUS}<span>${L(`${ext} Fragen mehr`,`${ext} more questions`)}</span></button>`:`<p class="hint">${L("Verlängern kann das Gerät, das den Code erstellt hat.","The device that created the code can extend the game.")}</p>`}
@@ -1708,6 +1719,7 @@ function endGame(){
   </div>`);
   if(tier==="hoch")burst(26);
   $("#share").onclick=shareResult;
+  const fbe=$("#fbEnd");if(fbe)fbe.onclick=()=>feedback(home);
   const sl=$("#supportLink");if(sl)sl.onclick=()=>{$("#tipSlot").innerHTML=tipCard("end");wireTip()};
   if(popupDue){S.lastPopup=games;save();setTimeout(()=>tipPopup(games),1600)}
   const more=$("#more");
@@ -2260,6 +2272,98 @@ function supportPreview(){
 }
 
 /* =========================================================
+   Feedback der Testphase
+   Geschlossene Antworten: anonym als Ereignisse über GoatCounter (nur Zahlen, keine Texte).
+   Freitexte: nur, wenn die Person sie selbst über das Teilen-Menü an mich schickt.
+   ========================================================= */
+const FEEDBACK_ON=true;
+const FB_TO="Gion"; // an wen die Freitexte gehen (Anzeige im Text)
+function feedback(after){
+  const A={};const de=!EN_ON();
+  const Qs=[
+    {k:"rating",t:L("Wie gefällt dir mBond insgesamt?","How do you like mBond overall?"),type:"hearts"},
+    {k:"with",t:L("Mit wem hast du gespielt?","Who did you play with?"),type:"multi",o:[["kind",L("Mit meinem Kind","With my child")],["teen",L("Mit meinem Teenager","With my teen")],["partner",L("Mit Partner/in","With my partner")],["family",L("Mit anderen aus der Familie","With other family")],["friends",L("Mit Freunden","With friends")],["notyet",L("Noch gar nicht","Not yet")]]},
+    {k:"often",t:L("Wie oft würdest du mBond spielen?","How often would you play mBond?"),type:"single",o:[["never",L("Eher nicht wieder","Probably not again")],["sometimes",L("Ab und zu","Now and then")],["weekly",L("Etwa jede Woche","About weekly")],["often",L("Mehrmals pro Woche","Several times a week")]]},
+    {k:"recommend",t:L("Würdest du mBond weiterempfehlen?","Would you recommend mBond?"),type:"single",o:[["yes",L("Ja","Yes")],["maybe",L("Vielleicht","Maybe")],["no",L("Nein","No")]]},
+    {k:"pay",t:L("Würdest du Geld dafür bezahlen?","Would you pay for it?"),type:"single",o:[["yes",L("Ja","Yes")],["maybe",L("Vielleicht","Maybe")],["no",L("Nein, nur kostenlos","No, only if free")]]},
+    {k:"amount",t:L("Wie viel wäre es dir wert?","How much would it be worth to you?"),type:"single",when:a=>a.pay==="yes"||a.pay==="maybe",o:[["1",L("bis 1 €","up to €1")],["2-3",L("2–3 €","€2–3")],["4-5",L("4–5 €","€4–5")],["6-10",L("6–10 €","€6–10")],["more",L("mehr als 10 €","more than €10")]],sub:L("Einmalig, für die App oder ein Themenpaket","One-off, for the app or a theme pack")},
+    {k:"model",t:L("Wie würdest du am liebsten bezahlen?","How would you prefer to pay?"),type:"single",when:a=>a.pay==="yes"||a.pay==="maybe",o:[["once",L("Einmal für die ganze App","Once for the whole app")],["packs",L("Einzelne Themenpakete","Single theme packs")],["tip",L("Freiwilliges Trinkgeld","Voluntary tip")],["sub",L("Kleines Abo","Small subscription")]]},
+    {k:"best",t:L("Was hat dir am besten gefallen?","What did you like best?"),type:"multi",o:[["reveal",L("Das gemeinsame Aufdecken","Revealing together")],["questions",L("Die Fragen","The questions")],["own",L("Eigene Bondings","Own bondings")],["ending",L("Ergebnis am Ende","The result at the end")],["voice",L("Vorlesen","Reading aloud")],["memes",L("Memes / Bilder","Memes / pictures")],["two",L("Zwei Geräte","Two devices")],["album",L("Herz-Album","Heart album")]]},
+    {k:"text",t:L("Hast du noch Verbesserungsvorschläge?","Any suggestions for improvement?"),type:"text",sub:L("Was war unklar, was fehlt, was würdest du ändern?","What was unclear, what's missing, what would you change?")}
+  ];
+  let i=0;
+  const visible=()=>Qs.filter(q=>!q.when||q.when(A));
+  const draw=()=>{
+    const list=visible(), q=list[i], last=i===list.length-1;
+    let body="";
+    if(q.type==="hearts")body=`<div class="scale" role="radiogroup">${[1,2,3,4,5].map(v=>`<button role="radio" data-h="${v}" aria-label="${v}" aria-checked="${A[q.k]===v}" class="${A[q.k]>=v?"on":""}">${heart(Math.round((30+v*9)*heartScale()))}</button>`).join("")}</div>`;
+    if(q.type==="single")body=`<div class="list fb-list">${q.o.map(([k,t])=>`<button class="item pick vo" data-o="${k}" aria-pressed="${A[q.k]===k}"><div class="t"><div class="n">${t}</div></div>${A[q.k]===k?CHECK:""}</button>`).join("")}</div>`;
+    if(q.type==="multi")body=`<p class="hint" style="margin:0">${L("Mehrere möglich","Choose any")}</p><div class="list fb-list">${q.o.map(([k,t])=>{const on=(A[q.k]||[]).includes(k);return `<button class="item pick vo" data-m="${k}" aria-pressed="${on}"><div class="t"><div class="n">${t}</div></div>${on?CHECK:""}</button>`}).join("")}</div>`;
+    if(q.type==="text")body=`<div class="field"><textarea id="fbText" rows="6" maxlength="1500" placeholder="${L("Alles ist hilfreich, auch Kleinigkeiten.","Anything helps, even small things.")}">${esc(A.text||"")}</textarea></div>`;
+    show(`
+    <div class="dots" aria-hidden="true">${list.map((_,k)=>`<span class="${k===i?"on":""}"></span>`).join("")}</div>
+    <div class="say"><h2>${q.t}</h2></div>
+    ${q.sub?`<p class="hint" style="margin:0">${q.sub}</p>`:""}
+    ${body}
+    <div class="push">
+      <button class="big primary" id="fbNext" ${q.type==="text"||q.type==="multi"||A[q.k]!=null?"":"disabled"}>${last?CHECK:ARROW}<span>${last?L("Abschließen","Finish"):L("Weiter","Next")}</span></button>
+      <div class="row">${i>0?`<button class="big soft" id="fbBack"><span>${L("Zurück","Back")}</span></button>`:""}<button class="big soft" id="fbStop"><span>${i===0?L("Später","Later"):L("Abbrechen","Cancel")}</span></button></div>
+    </div>`,false,true);
+    stage.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{A[q.k]=+b.dataset.h;draw()});
+    stage.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>{A[q.k]=b.dataset.o;draw()});
+    stage.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{const l=A[q.k]||(A[q.k]=[]);const k=b.dataset.m;A[q.k]=l.includes(k)?l.filter(x=>x!==k):l.concat(k);draw()});
+    const ta=$("#fbText");if(ta)ta.oninput=()=>{A.text=ta.value};
+    $("#fbNext").onclick=()=>{if(ta)A.text=ta.value;if(last)return done();i++;draw()};
+    const bk=$("#fbBack");if(bk)bk.onclick=()=>{if(ta)A.text=ta.value;i--;draw()};
+    $("#fbStop").onclick=()=>{if(i===0){S.fbLater=true;save()}(after||home)()};
+  };
+  const label=(k,v)=>{const q=Qs.find(x=>x.k===k);if(!q||!q.o)return v;const f=o=>(q.o.find(x=>x[0]===o)||[o,o])[1];return Array.isArray(v)?v.map(f).join(", "):f(v)};
+  const done=()=>{
+    // geschlossene Antworten anonym zählen
+    track("fb/done");
+    if(A.rating)track("fb/rating/"+A.rating);
+    (A.with||[]).forEach(v=>track("fb/with/"+v));
+    if(A.often)track("fb/often/"+A.often);
+    if(A.recommend)track("fb/recommend/"+A.recommend);
+    if(A.pay)track("fb/pay/"+A.pay);
+    if(A.amount)track("fb/amount/"+A.amount);
+    if(A.model)track("fb/model/"+A.model);
+    (A.best||[]).forEach(v=>track("fb/best/"+v));
+    S.fbDone=true;save();
+    const summary=[
+      L("mBond-Feedback","mBond feedback"),
+      `${L("Gesamt","Overall")}: ${"♥".repeat(A.rating||0)}${"♡".repeat(5-(A.rating||0))}`,
+      A.with&&A.with.length?`${L("Gespielt mit","Played with")}: ${label("with",A.with)}`:"",
+      A.often?`${L("Wie oft","How often")}: ${label("often",A.often)}`:"",
+      A.recommend?`${L("Weiterempfehlen","Recommend")}: ${label("recommend",A.recommend)}`:"",
+      A.pay?`${L("Bezahlen","Pay")}: ${label("pay",A.pay)}${A.amount?" · "+label("amount",A.amount):""}${A.model?" · "+label("model",A.model):""}`:"",
+      A.best&&A.best.length?`${L("Am besten","Best")}: ${label("best",A.best)}`:"",
+      A.text&&A.text.trim()?`${L("Vorschläge","Suggestions")}: ${A.text.trim()}`:""
+    ].filter(Boolean).join("\n");
+    const hasText=!!(A.text&&A.text.trim());
+    show(`
+    <div class="say"><h2>💛 ${L("Danke für dein Feedback!","Thanks for your feedback!")}</h2></div>
+    <p class="hint">${hasText
+      ?L(`Deine Antworten zum Ankreuzen sind anonym angekommen. Deine Vorschläge kann ich nur lesen, wenn du sie mir schickst, zum Beispiel per WhatsApp an ${FB_TO}.`,`Your multiple-choice answers have arrived anonymously. I can only read your suggestions if you send them to me, e.g. via WhatsApp to ${FB_TO}.`)
+      :L("Deine Antworten sind anonym angekommen. Wenn du magst, kannst du sie mir zusätzlich direkt schicken.","Your answers have arrived anonymously. If you like, you can also send them to me directly.")}</p>
+    <pre class="fb-sum">${esc(summary)}</pre>
+    <div class="push">
+      <button class="big primary" id="fbSend">${SHARE}<span>${L("Antworten senden","Send answers")}</span></button>
+      <button class="big soft" id="fbCopy"><span>${L("Kopieren","Copy")}</span></button>
+      <button class="tiny" id="fbHome">${L("Fertig","Done")}</button>
+    </div>`,false,true);
+    $("#fbSend").onclick=async()=>{
+      track("fb/shared");
+      try{if(navigator.share){await navigator.share({title:"mBond Feedback",text:summary});return}}catch(e){if(e&&e.name==="AbortError")return}
+      copyText(summary,$("#fbCopy"));toast(L("Text kopiert. Füge ihn einfach in eine Nachricht ein.","Text copied. Just paste it into a message."));
+    };
+    $("#fbCopy").onclick=()=>copyText(summary,$("#fbCopy"));
+    $("#fbHome").onclick=()=>(after||home)();
+  };
+  draw();
+}
+
+/* =========================================================
    Datenschutzerklärung (in der App)
    ========================================================= */
 const OWNER={name:"Gion Pres-Eßbach",mail:"presessbach@gmail.com"};
@@ -2286,7 +2390,10 @@ function privacyPage(){
       P(de?"Nur wenn du „Zwei Geräte“ nutzt: Damit sich die Geräte über den Code finden, wird einmalig der Vermittlungsserver des Open-Source-Projekts PeerJS genutzt. Für den Verbindungsaufbau kommen außerdem STUN-Server von Google und Twilio zum Einsatz. Dabei werden IP-Adressen verarbeitet, die Server können außerhalb der EU stehen. Namen und Antworten laufen direkt zwischen euren Geräten (WebRTC). Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO, weil du diese Funktion selbst auswählst."
           :"Only when you use “Two devices”: so the devices can find each other via the code, the connection server of the open-source project PeerJS is used once. STUN servers from Google and Twilio also help set up the connection. IP addresses are processed in the process, and these servers may be outside the EU. Names and answers travel directly between your devices (WebRTC). Legal basis: Art. 6(1)(b) GDPR, as you choose this feature yourself.")),
   ];
-  if(TIP_ENABLED)parts.push(sec(de?"6. Freiwilliges Trinkgeld (PayPal)":"6. Voluntary tip (PayPal)",
+  parts.push(sec(de?"6. Feedback":"6. Feedback",
+      P(de?"Gibst du in der App Feedback, werden deine angekreuzten Antworten (zum Beispiel „würde weiterempfehlen: ja“) anonym als Zählung über GoatCounter erfasst, ohne Namen und ohne Freitext. Deine Vorschläge im Textfeld verlassen dein Gerät nur, wenn du sie selbst über das Teilen-Menü verschickst, etwa per WhatsApp oder E-Mail. Dann gelten die Datenschutzbestimmungen des Dienstes, den du dafür wählst."
+          :"If you give feedback in the app, your multiple-choice answers (e.g. “would recommend: yes”) are counted anonymously via GoatCounter, without names and without free text. Your written suggestions only leave your device if you send them yourself via the share menu, e.g. by WhatsApp or email. The privacy terms of the service you choose then apply.")));
+  if(TIP_ENABLED)parts.push(sec(de?"7. Freiwilliges Trinkgeld (PayPal)":"7. Voluntary tip (PayPal)",
       P(de?`Tippst du auf den PayPal-Knopf, wirst du zu PayPal (Europe) S.à r.l. et Cie, S.C.A., Luxemburg weitergeleitet. Zahlungsdaten verarbeitet erst PayPal. Bei einer Zahlung erhalte ich Name, E-Mail-Adresse und Betrag und nutze sie nur zur Abwicklung und für steuerliche Pflichten. Rechtsgrundlage: Art. 6 Abs. 1 lit. b und c DSGVO. Mehr: ${link("https://www.paypal.com/de/legalhub/privacy-full","PayPal-Datenschutz")}`
           :`If you tap the PayPal button you are taken to PayPal (Europe) S.à r.l. et Cie, S.C.A., Luxembourg. Only PayPal processes payment data. For a payment I receive name, email and amount and use them only to process it and for tax duties. Legal basis: Art. 6(1)(b) and (c) GDPR. More: ${link("https://www.paypal.com/de/legalhub/privacy-full","PayPal privacy")}`)));
   const n=parts.length+1;

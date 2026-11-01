@@ -314,6 +314,17 @@ button.who-box .face{width:84px;height:84px;font-size:50px}
 .support-btn .sb-go{font-family:var(--display);font-size:28px;line-height:1;color:var(--muted)}
 .support-btn:active{background:var(--heart-soft)}
 
+/* Datenschutz */
+.foot-link{align-self:center;font-size:13px;opacity:.85}
+.legal{display:flex;flex-direction:column;gap:14px;max-width:62ch}
+.legal-sec h3{margin:0 0 4px;font-family:var(--display);font-weight:600;font-size:17px}
+.legal-sec p{margin:0;font-size:14.5px;line-height:1.55;user-select:text;-webkit-user-select:text}
+.legal a{color:var(--fg);text-decoration:underline;text-underline-offset:2px}
+.legal .sel{user-select:text;-webkit-user-select:text;font-weight:600}
+.legal .copy{min-height:32px;margin-left:6px;vertical-align:middle}
+.optout{margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:8px 10px;font-size:14px}
+.legal-date{margin:0;font-size:13px;color:var(--muted)}
+
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{border-radius:16px;padding:8px 4px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:14px;line-height:1.1}
@@ -994,6 +1005,7 @@ function home(){
     ${nudge(own?L(`${own} eigene${own>1?"":"s"} Bonding${own>1?"s":""} · noch eins?`,`${own} own bonding${own>1?"s":""} · add another?`):L("Eigenes Bonding erstellen","Create your own bonding"),L("Eure Rituale bringen die größten Aha-Momente.","Your own rituals bring the biggest aha moments."))}
     <button class="big primary" id="play">${ARROW}<span>${L("Los geht's","Let's play")}</span></button>
     <div class="row"><button class="big soft" id="album">${BOOK}<span>${L("Album","Album")}</span></button><button class="big soft" id="two">${PHONES}<span>${L("Zwei Geräte","Two devices")}</span></button></div>
+    <button class="tiny foot-link" id="privacy">${L("Datenschutz","Privacy")}</button>
   </div>`,true,true);
   wireNudge(home);
   const go=()=>setup(()=>S.introSeen?start():intro());
@@ -1002,6 +1014,7 @@ function home(){
   const pv=$("#prev");if(pv)pv.onclick=supportPreview;
   $("#album").onclick=()=>album();
   $("#two").onclick=twoStart;
+  $("#privacy").onclick=privacyPage;
 }
 
 /* ---------- Beispielrunde ---------- */
@@ -1517,7 +1530,7 @@ const TIP={
 };
 /* Zählen ohne Cookies und ohne persönliche Daten (GoatCounter).
    Eigenen Code eintragen, z. B. "mbond" für https://mbond.goatcounter.com – leer = es wird nichts gezählt. */
-const TRACK={goatcounter:""};
+const TRACK={goatcounter:"likedthatapp"};
 const counted={};
 /* Eigene Besuche ausnehmen: Seite einmal mit #toggle-goatcounter am Ende der Adresse öffnen (wie bei GoatCounter üblich) */
 try{if(location.hash==="#toggle-goatcounter"){const on=localStorage.getItem("skipgc")==="t";localStorage.setItem("skipgc",on?"f":"t");alert&&0;history.replaceState(null,"",location.pathname)}}catch(e){}
@@ -2025,6 +2038,52 @@ function supportPreview(){
     if(changed){location.reload();return}
     home();
   };
+}
+
+/* =========================================================
+   Datenschutzerklärung (in der App)
+   ========================================================= */
+const OWNER={name:"Gion Pres-Eßbach",mail:"presessbach@gmail.com"};
+function privacyPage(){
+  let skip=false;try{skip=localStorage.getItem("skipgc")==="t"}catch(e){}
+  const de=!EN_ON();
+  const sec=(t,body)=>`<section class="legal-sec"><h3>${t}</h3>${body}</section>`;
+  const P=t=>`<p>${t}</p>`;
+  const link=(u,t)=>`<a href="${u}" target="_blank" rel="noopener">${t||u.replace(/^https:\/\//,"")}</a>`;
+  const parts=[
+    sec(de?"1. Verantwortlich":"1. Controller",
+      P(`${esc(OWNER.name)}<br>${de?"E-Mail":"Email"}: <span class="sel">${esc(OWNER.mail)}</span> <button class="copy" id="copyMail">${L("Kopieren","Copy")}</button>`)),
+    sec(de?"2. Deine Daten bleiben auf deinem Gerät":"2. Your data stays on your device",
+      P(de?"mBond braucht kein Konto, keine Anmeldung, keine Werbung und keine Cookies. Namen, Gesichter, Antworten, Album und Einstellungen werden nur im Browser deines Geräts gespeichert (localStorage) und nicht an mich oder Dritte übertragen. Du löschst sie, indem du die Websitedaten im Browser entfernst."
+          :"mBond needs no account, no sign-in, no ads and no cookies. Names, faces, answers, album and settings are stored only in your device's browser (localStorage) and are not sent to me or anyone else. You delete them by clearing the site data in your browser.")),
+    sec(de?"3. Bereitstellung über GitHub Pages":"3. Hosting via GitHub Pages",
+      P(de?`mBond wird über GitHub Pages der GitHub Inc. (USA) ausgeliefert. Beim Aufruf verarbeitet GitHub technisch notwendige Daten wie deine IP-Adresse, um die App bereitzustellen und abzusichern. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO. Für Übermittlungen in die USA nutzt GitHub das EU-US Data Privacy Framework bzw. Standardvertragsklauseln. Mehr: ${link("https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement","GitHub-Datenschutzerklärung")}`
+          :`mBond is served via GitHub Pages by GitHub Inc. (USA). When you open it, GitHub processes technically necessary data such as your IP address to deliver and secure the app. Legal basis: Art. 6(1)(f) GDPR. For transfers to the USA, GitHub relies on the EU-US Data Privacy Framework or standard contractual clauses. More: ${link("https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement","GitHub privacy statement")}`)),
+    sec(de?"4. Anonyme Nutzungszählung (GoatCounter)":"4. Anonymous usage counting (GoatCounter)",
+      P(de?`Damit ich sehe, ob mBond genutzt wird und welche Funktionen sich lohnen, zähle ich Aufrufe und einzelne Ereignisse wie „Spiel beendet“. Dafür nutze ich GoatCounter (Niederlande). Es werden keine Cookies gesetzt, keine Namen oder Antworten übertragen und keine Profile gebildet. Beim Zählen werden kurzzeitig IP-Adresse und Browserangaben verarbeitet, gespeichert werden nur zusammengefasste Zahlen. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO. Mehr: ${link("https://www.goatcounter.com/help/privacy","GoatCounter-Datenschutz")}`
+          :`To see whether mBond is used and which features are worthwhile, I count visits and single events such as “game finished”. I use GoatCounter (Netherlands) for this. No cookies are set, no names or answers are sent and no profiles are built. IP address and browser details are processed briefly while counting; only aggregated numbers are stored. Legal basis: Art. 6(1)(f) GDPR. More: ${link("https://www.goatcounter.com/help/privacy","GoatCounter privacy")}`)
+      +`<div class="optout"><span id="gcState">${skip?L("Auf diesem Gerät wird nicht gezählt.","Not counted on this device."):L("Auf diesem Gerät wird gezählt.","Counted on this device.")}</span><button class="copy" id="gcToggle">${skip?L("Zählung erlauben","Allow counting"):L("Nicht mehr zählen","Stop counting")}</button></div>`),
+    sec(de?"5. Spielen auf zwei Geräten":"5. Playing on two devices",
+      P(de?"Nur wenn du „Zwei Geräte“ nutzt: Damit sich die Geräte über den Code finden, wird einmalig der Vermittlungsserver des Open-Source-Projekts PeerJS genutzt. Für den Verbindungsaufbau kommen außerdem STUN-Server von Google und Twilio zum Einsatz. Dabei werden IP-Adressen verarbeitet, die Server können außerhalb der EU stehen. Namen und Antworten laufen direkt zwischen euren Geräten (WebRTC). Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO, weil du diese Funktion selbst auswählst."
+          :"Only when you use “Two devices”: so the devices can find each other via the code, the connection server of the open-source project PeerJS is used once. STUN servers from Google and Twilio also help set up the connection. IP addresses are processed in the process, and these servers may be outside the EU. Names and answers travel directly between your devices (WebRTC). Legal basis: Art. 6(1)(b) GDPR, as you choose this feature yourself.")),
+  ];
+  if(TIP_ENABLED)parts.push(sec(de?"6. Freiwilliges Trinkgeld (PayPal)":"6. Voluntary tip (PayPal)",
+      P(de?`Tippst du auf den PayPal-Knopf, wirst du zu PayPal (Europe) S.à r.l. et Cie, S.C.A., Luxemburg weitergeleitet. Zahlungsdaten verarbeitet erst PayPal. Bei einer Zahlung erhalte ich Name, E-Mail-Adresse und Betrag und nutze sie nur zur Abwicklung und für steuerliche Pflichten. Rechtsgrundlage: Art. 6 Abs. 1 lit. b und c DSGVO. Mehr: ${link("https://www.paypal.com/de/legalhub/privacy-full","PayPal-Datenschutz")}`
+          :`If you tap the PayPal button you are taken to PayPal (Europe) S.à r.l. et Cie, S.C.A., Luxembourg. Only PayPal processes payment data. For a payment I receive name, email and amount and use them only to process it and for tax duties. Legal basis: Art. 6(1)(b) and (c) GDPR. More: ${link("https://www.paypal.com/de/legalhub/privacy-full","PayPal privacy")}`)));
+  const n=parts.length+1;
+  parts.push(sec(de?`${n}. Vorlesen und Teilen`:`${n}. Reading aloud and sharing`,
+      P(de?"Das Vorlesen nutzt die Sprachausgabe deines Geräts. Ein Ergebnisbild teilst du selbst über eine App deiner Wahl, mBond überträgt dabei nichts an mich."
+          :"Reading aloud uses your device's speech output. You share a result image yourself via an app of your choice; mBond sends nothing to me.")));
+  parts.push(sec(de?`${n+1}. Deine Rechte`:`${n+1}. Your rights`,
+      P(de?"Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO). Schreib mir dazu einfach eine E-Mail. Außerdem kannst du dich bei einer Datenschutz-Aufsichtsbehörde beschweren, zum Beispiel bei der Landesbeauftragten für Datenschutz und Informationsfreiheit Nordrhein-Westfalen."
+          :"You have the right of access, rectification, erasure, restriction, data portability and objection (Art. 15–21 GDPR). Just send me an email. You can also lodge a complaint with a data protection authority, for example the State Commissioner for Data Protection and Freedom of Information of North Rhine-Westphalia.")));
+  show(`
+  <div class="say"><h2>${L("Datenschutz","Privacy")}</h2></div>
+  <div class="legal">${parts.join("")}<p class="legal-date">${L("Stand: November 2026","Last updated: November 2026")}</p></div>
+  <div class="push"><button class="big primary" id="back">${CHECK}<span>${L("Zurück","Back")}</span></button></div>`);
+  $("#back").onclick=()=>home();
+  const cm=$("#copyMail");cm.onclick=()=>copyText(OWNER.mail,cm);
+  $("#gcToggle").onclick=()=>{try{localStorage.setItem("skipgc",skip?"f":"t")}catch(e){}privacyPage()};
 }
 
 applyPlus();setGold();

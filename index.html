@@ -301,6 +301,10 @@ button.who-box .face{width:84px;height:84px;font-size:50px}
 @media (prefers-color-scheme: dark){:root.gold:not([data-theme="light"]){--heart:#FFC629;--heart-soft:#4A4126}}
 :root.gold[data-theme="dark"]{--heart:#FFC629;--heart-soft:#4A4126}
 
+.dev-link{margin-top:-4px;opacity:.8}
+.prev-back{position:fixed;z-index:40;right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  background:#262625;color:#FDD602;border-radius:999px;padding:10px 16px;font-family:var(--display);font-weight:600;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+
 /* Altersgruppen */
 .ages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .chip{border-radius:16px;padding:8px 4px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:14px;line-height:1.1}
@@ -795,7 +799,9 @@ const KEY="mbond.v4";
 let S={sound:true,people:[],rel:{},lastPair:null,album:{},custom:{},recent:{},rounds:0,introSeen:false,demoSeen:false,lang:null};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)S=Object.assign(S,s)}catch(e){}
 if(!S.lang)S.lang=(navigator.language||"de").toLowerCase().startsWith("de")?"de":"en";
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+let PREVIEW=null; // Vorschau-Modus: nichts wird gespeichert oder gezählt
+const PREVIEW_ENTRY=false; // nur in der Claude-Version sichtbar
+function save(){if(PREVIEW)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 
 /* Sprache: L("deutsch","english") */
 const EN_ON=()=>S.lang==="en";
@@ -973,6 +979,7 @@ function home(){
     <h1>mBond</h1>
     <p class="hint">${L("Kommt meine Liebe so an, wie ich sie meine?","Does my love land the way I mean it?")}</p>
     <button class="tiny" id="how">${L("So geht's","How it works")}</button>
+    ${PREVIEW_ENTRY?`<button class="tiny dev-link" id="prev">🧪 ${L("Vorschau: Unterstützung","Preview: support")}</button>`:""}
   </div>
   <div class="push">
     ${nudge(own?L(`${own} eigene${own>1?"":"s"} Bonding${own>1?"s":""} · noch eins?`,`${own} own bonding${own>1?"s":""} · add another?`):L("Eigenes Bonding erstellen","Create your own bonding"),L("Eure Rituale bringen die größten Aha-Momente.","Your own rituals bring the biggest aha moments."))}
@@ -983,6 +990,7 @@ function home(){
   const go=()=>setup(()=>S.introSeen?start():intro());
   $("#play").onclick=()=>S.demoSeen?go():demo(go);
   $("#how").onclick=()=>demo(home);
+  const pv=$("#prev");if(pv)pv.onclick=supportPreview;
   $("#album").onclick=()=>album();
   $("#two").onclick=twoStart;
 }
@@ -1501,6 +1509,7 @@ const TIP={
 const TRACK={goatcounter:""};
 const counted={};
 function track(name,once){
+  if(PREVIEW)return;
   if(!TRACK.goatcounter||(once&&counted[name]))return;counted[name]=1;
   try{
     const u=`https://${TRACK.goatcounter}.goatcounter.com/count?p=${encodeURIComponent("/event/"+name)}&t=${encodeURIComponent(name)}&e=true&rnd=${Math.random().toString(36).slice(2)}`;
@@ -1940,6 +1949,55 @@ function unlockPlus(){
     <button class="big primary" id="thx">${CHECK}<span>${L("Weiter","Continue")}</span></button></div>`;
   document.body.appendChild(ov);$("#thx").onclick=()=>ov.remove();
   if(slot)slot.innerHTML=`<p class="thanks-line">💛 ${L("Danke, dass ihr mBond unterstützt!","Thank you for supporting mBond!")}</p>`;
+}
+
+/* =========================================================
+   Vorschau der Unterstützungs-Abläufe (nur Claude-Version).
+   Arbeitet mit einer Kopie des Zustands, speichert und zählt nichts.
+   ========================================================= */
+function supportPreview(){
+  if(!PREVIEW)PREVIEW={snap:JSON.stringify(S),plus:plusApplied};
+  const exitBtn=()=>{
+    let b=$("#prevBack");if(b)return;
+    b=document.createElement("button");b.id="prevBack";b.className="prev-back";b.textContent="◀ "+L("Vorschau","Preview");
+    b.onclick=()=>{document.querySelectorAll(".share-ov").forEach(x=>x.remove());supportPreview()};document.body.appendChild(b);
+  };
+  const scen=[
+    ["pop",L("Pop-up nach dem 3. Spiel","Popup after game 3"),L("Zwei Erwachsene, erstes großes Pop-up","Two adults, first big popup")],
+    ["subtle",L("Dezenter Hinweis","Subtle hint"),L("Zwei Erwachsene, 5. Spiel: nur die kleine Zeile","Two adults, game 5: just the small line")],
+    ["teen",L("Spiel mit Teenager","Game with a teenager"),L("Nur „Für Eltern“, kein Pop-up","Only “For parents”, no popup")],
+    ["kita",L("Spiel mit Kita-Kind","Game with a toddler"),L("Kein Hinweis auf Unterstützung","No support hint at all")],
+    ["unlock",L("Freischalten ausprobieren","Try unlocking"),L("Pop-up → PayPal antippen → „Ich habe unterstützt“","Popup → tap PayPal → “I've given a tip”")],
+    ["supporter",L("Nach dem Freischalten","After unlocking"),L("Goldene Herzen und Dankeschön-Zeile","Golden hearts and thank-you line")],
+    ["album",L("Album mit Eltern-Sperre","Album with parent lock"),L("Rechenaufgabe in Worten vor dem Trinkgeld","Word sum before the tip box")]
+  ];
+  document.querySelectorAll(".share-ov").forEach(x=>x.remove());const ob=$("#prevBack");if(ob)ob.remove();
+  S=Object.assign(JSON.parse(PREVIEW.snap),{supporter:false,gold:false});setGold();
+  show(`
+  <div class="say"><h2>🧪 ${L("Vorschau: Unterstützung","Preview: support")}</h2></div>
+  <p class="hint">${L("Hier spielst du die Abläufe durch, ohne dass etwas gespeichert, gezählt oder bezahlt wird. Der PayPal-Knopf öffnet trotzdem deine echte PayPal-Seite, also dort nicht bezahlen.","Walk through the flows here: nothing is saved, counted or paid. The PayPal button still opens your real PayPal page, so don't pay there.")}</p>
+  <div class="list">${scen.map(([k,t,d])=>`<button class="item pick" data-sc="${k}"><div class="t"><div class="n">${t}</div><div class="g">${d}</div></div></button>`).join("")}</div>
+  <div class="push"><button class="big primary" id="prevEnd">${CHECK}<span>${L("Vorschau beenden","End preview")}</span></button></div>`);
+  const end=(st,rel,names)=>{
+    CUR=makeCtx({id:null,name:names[0],av:names[1],stage:"erwachsen"},{id:null,name:names[2],av:names[3],stage:st},rel);
+    CUR.total=10;CUR.res=Array.from({length:10},(_,i)=>({id:"x"+i,n:i%2?L("Kuscheln","Cuddles"):L("Zusammen lachen","Laughing together"),e:i%2?"🤗":"😂",c:i%3?"s":"w",gv:3,av:i%4?3:5,ai:i%2}));
+    endGame();exitBtn();
+  };
+  stage.querySelectorAll("[data-sc]").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.sc;
+    if(k==="pop"||k==="unlock"){S.games=2;S.lastPopup=0;S.tipVia="paypal";end("erwachsen","partner",["Anna","👩","Ben","👨"])}
+    if(k==="subtle"){S.games=4;S.lastPopup=3;end("erwachsen","partner",["Anna","👩","Ben","👨"])}
+    if(k==="teen"){S.games=2;S.lastPopup=0;end("teen","eltern",["Mama","👩","Jonas","🧑"])}
+    if(k==="kita"){S.games=2;S.lastPopup=0;end("kita","eltern",["Papa","🧔","Miles","👦"])}
+    if(k==="supporter"){S.supporter=true;S.gold=true;applyPlus();setGold();end("erwachsen","partner",["Anna","👩","Ben","👨"])}
+    if(k==="album"){S.supporter=false;S.rounds=6;S.people=[{id:"pv1",name:"Lena",av:"👧",stage:"kita"}];S.album={pv1:{"klein:y:kuscheln":{k:5,a:3,t:1,e:"🤗",n:"Kuscheln",by:"👩"}}};album("pv1");exitBtn()}
+  });
+  $("#prevEnd").onclick=()=>{
+    const changed=plusApplied!==PREVIEW.plus;
+    S=JSON.parse(PREVIEW.snap);PREVIEW=null;setGold();
+    if(changed){location.reload();return}
+    home();
+  };
 }
 
 applyPlus();setGold();
